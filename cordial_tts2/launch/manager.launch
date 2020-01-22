@@ -1,0 +1,12 @@
+<launch>
+
+    <param name="voice" type="str" value="Ivy"/>
+    <param name="region" type="str" value="us-west-1"/>
+
+    <!--
+    <node pkg="cordial_tts2" type="manager.py" name="manager" output="screen"/>
+    -->
+
+    <include file="$(find cordial_sound)/launch/sound.launch" />
+    <include file="$(find cordial_face)/launch/face.launch" />
+</launch>
