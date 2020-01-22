@@ -5,6 +5,8 @@ import sys
 import re
 import os
 import json
+import soundfile
+
 from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 from contextlib import closing
@@ -41,24 +43,54 @@ class AwsPollyClient:
         self._voice = voice
         self._aws_client = client("polly", region_name=region)
 
-    def text_to_wav_file(
+    def run(self, text):
+
+        file_path = self.get_wav_file(text)
+        behaviors = self.get_schedule_for_behaviors(text)
+
+        return file_path, behaviors
+
+    def get_wav_file(
             self,
             text,
             out_file_name='temp',
             out_directory='',
     ):
 
-        outdir_path = os.path.abspath(os.path.expanduser(out_directory))
+        response = self._synthesize_speech(text)
+        out_file = self._save_speech_as_wav_file(response, out_file_name, out_directory)
 
-        data = {}
-        phrase, data["behaviors"] = self.extract_behaviors(text)
+        return out_file
 
-        data["file"] = outdir_path +"/" + out_file_name + ".ogg"
-        data["text"] = '"'+phrase+'"'
+    @staticmethod
+    def _save_speech_as_wav_file(response, out_file_name, out_directory):
 
+        out_file_path_no_ext = os.path.abspath(os.path.join(out_directory, out_file_name))
+        out_file_path_ogg = out_file_path_no_ext + ".ogg"
+        out_file_path_wav = out_file_path_no_ext + ".wav"
+
+        if "AudioStream" in response:
+            with closing(response["AudioStream"]) as stream:
+                try:
+                    with open(out_file_path_ogg, "wb") as f:
+                        f.write(stream.read())
+                except IOError as error:
+                    print(error)
+        else:
+            print("Could not stream audio")
+            sys.exit(-1)
+
+        contents, samplerate = soundfile.read(out_file_path_ogg)
+        soundfile.write(out_file_path_wav, contents, samplerate)
+
+        os.remove(out_file_path_ogg)
+
+        return out_file_path_wav
+
+    def _synthesize_speech(self, text):
         try:
             response = self._aws_client.synthesize_speech(
-                Text=phrase,
+                Text=self._get_phrase(text),
                 TextType='ssml',
                 OutputFormat="ogg_vorbis",
                 VoiceId=self._voice,
@@ -66,36 +98,18 @@ class AwsPollyClient:
         except (BotoCoreError, ClientError) as error:
             print(error)
             sys.exit(-1)
+        return response
 
-        if "AudioStream" in response:
-            with closing(response["AudioStream"]) as stream:
-                output = data["file"]
-            try:
-                with open(output, "wb") as f:
-                    f.write(stream.read())
-            except IOError as error:
-                print(error)
-        else:
-            print("Could not stream audio")
-            sys.exit(-1)
-
-        return data
-
-    def extract_behaviors(self, text):
+    def get_schedule_for_behaviors(self, text):
         """
-        function used to generate viseme and expression time data.
+        function used to generate viseme and expression time behavior_schedule.
         input - line of text to be processed with polly
         """
 
-        # filter out the emotes surrounded by asterisks
-        tokens = re.split("(\*[^\*\*]*\*)", text)
-        phrase = (
-                '<speak><lang xml:lang="en-US">' +
-                ''.join(filter(lambda s: "*" not in s, tokens)) +
-                '</lang></speak>'
+        tokens = map(
+            lambda s: self._cond_split(s),
+            self._split_by_actions(text)
         )
-
-        tokens = map(lambda s: self._cond_split(s), tokens)
         words = []
 
         for t in tokens:
@@ -111,14 +125,12 @@ class AwsPollyClient:
             else:
                 i += 1
 
-        print("PROCESSING: '{}'".format(phrase)) #print out the phase to be converted to speech
-
         # example server code for reference: https://docs.aws.amazon.com/polly/latest/dg/example-Python-server-code.html
         # use the interface to communicate with the Amazon Polly Client
         try:
             # enclose phrase in speak tags to use Polly's ssml, and let Polly know the language
             response = self._aws_client.synthesize_speech(
-                Text=phrase,
+                Text=self._get_phrase(text),
                 TextType='ssml',
                 OutputFormat="json",
                 VoiceId=self._voice,
@@ -142,11 +154,11 @@ class AwsPollyClient:
 
         # find the times to play beginnings of words, so the actions can be spliced in.
         word_times = filter(lambda l: l["type"]=="word", x_sheet)
-        # data will be the list of visemes and actions in order by time
-        # data will collect also information about word timing
-        data = []
+        # behavior_schedule will be the list of visemes and actions in order by time
+        # behavior_schedule will collect also information about word timing
+        behavior_schedule = []
         for w in word_times:
-            data.append(
+            behavior_schedule.append(
                 {
                     "time": float(w["time"]) / 1000.,  # convert ms to seconds
                     "type": "word",
@@ -162,10 +174,10 @@ class AwsPollyClient:
             else:
                 a[0] = (word_times[a[0]]["time"]) / 1000.  # convert ms to seconds
 
-        # data will contain also the information about the timing of the words
+        # behavior_schedule will contain also the information about the timing of the words
         for a in actions:
             args = a[2]
-            data.append(
+            behavior_schedule.append(
                 {
                     "start": float(a[0])+.01,  # prevent visemes and actions from being at exactly the same time
                     "type": "action",
@@ -183,7 +195,7 @@ class AwsPollyClient:
             filter(lambda l: l["type"] == "viseme", x_sheet)
         )
         for v in visemes:
-            data.append(
+            behavior_schedule.append(
                 {
                     "start": float(v[0]) / 1000.,  # convert ms to seconds
                     "type": "viseme",
@@ -191,7 +203,25 @@ class AwsPollyClient:
                 }
             )
 
-        return phrase, data
+        return sorted(behavior_schedule, key=lambda index: index['start'])
+
+    @staticmethod
+    def _get_phrase(text):
+        phrase = (
+                '<speak><lang xml:lang="en-US">' +
+                ''.join(
+                    filter(
+                        lambda s: "*" not in s, AwsPollyClient._split_by_actions(text)
+                    )
+                ) +
+                '</lang></speak>'
+        )
+        return phrase
+
+    @staticmethod
+    def _split_by_actions(text):
+        tokens = re.split("(\*[^\*\*]*\*)", text)
+        return tokens
 
     @staticmethod
     def _cond_split(s):
@@ -203,6 +233,11 @@ class AwsPollyClient:
 
 if __name__ == '__main__':
 
+    text_to_say = "Hi there, love"
+
     client = AwsPollyClient()
-    client.text_to_wav_file('Hello, cutie')
-    os.system("mpg123 " + 'temp.ogg')
+    wav_file, behaviors = client.run(text_to_say)
+
+    print behaviors
+    print wav_file
+    os.system("aplay " + wav_file)
