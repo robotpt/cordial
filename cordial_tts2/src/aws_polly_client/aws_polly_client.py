@@ -45,10 +45,11 @@ class AwsPollyClient:
 
     def run(self, text):
 
+        text_no_actions = self.get_text_without_actions(text)
         file_path = self.get_wav_file(text)
         behaviors = self.get_schedule_for_behaviors(text)
 
-        return file_path, behaviors
+        return text_no_actions, file_path, behaviors
 
     def get_wav_file(
             self,
@@ -88,6 +89,7 @@ class AwsPollyClient:
         return out_file_path_wav
 
     def _synthesize_speech(self, text):
+
         try:
             response = self._aws_client.synthesize_speech(
                 Text=self._get_phrase(text),
@@ -153,20 +155,22 @@ class AwsPollyClient:
             sys.exit(-1)
 
         # find the times to play beginnings of words, so the actions can be spliced in.
-        word_times = filter(lambda l: l["type"]=="word", x_sheet)
+        word_times = filter(lambda l: l["type"] == "word", x_sheet)
         # behavior_schedule will be the list of visemes and actions in order by time
         # behavior_schedule will collect also information about word timing
         behavior_schedule = []
+        chars_before_phrase_content = 30
         for w in word_times:
             behavior_schedule.append(
                 {
-                    "time": float(w["time"]) / 1000.,  # convert ms to seconds
+                    "start": float(w["time"]) / 1000.,  # convert ms to seconds
+                    "char_start": w["start"]-chars_before_phrase_content,
+                    "char_end": w["end"]-chars_before_phrase_content,
                     "type": "word",
-                    "start": float(w["start"]),
                     "value": str(w["value"])
                 }
             )
-        
+
         # assign the actions the correct time based on when they appear in the script
         for a in actions:
             if a[0] > len(word_times)-1:
@@ -206,14 +210,18 @@ class AwsPollyClient:
         return sorted(behavior_schedule, key=lambda index: index['start'])
 
     @staticmethod
+    def get_text_without_actions(text):
+        return ''.join(
+            filter(
+                lambda s: "*" not in s, AwsPollyClient._split_by_actions(text)
+            )
+        )
+
+    @staticmethod
     def _get_phrase(text):
         phrase = (
                 '<speak><lang xml:lang="en-US">' +
-                ''.join(
-                    filter(
-                        lambda s: "*" not in s, AwsPollyClient._split_by_actions(text)
-                    )
-                ) +
+                AwsPollyClient.get_text_without_actions(text) +
                 '</lang></speak>'
         )
         return phrase
