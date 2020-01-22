@@ -1,4 +1,3 @@
-
 //------------------------------------------------------------------------------
 // Face for SPRITE robot (to be run on mobile phone)
 // Copyright (C) 2017 Elaine Schaertl Short
@@ -17,9 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-
-
-var listener,ros, latency_listener, latency_publisher;
+var listener,ros, latency_listener, latency_publisher, two;
 var container, stats;
 
 var camera, scene, renderer;
@@ -31,6 +28,11 @@ var parts;
 var aus_l;
 var aus_r;
 var n_aus = 43;
+
+var upperLipControlPoints = []; lowerLipControlPoints = [];
+var lBrowControlPoints = []; rBrowControlPoints = [];
+
+var lockIdleUntil = 0; //variable to lock idling, if a behavioral blink is occuring
 
 var targetRotation = 0;
 var targetRotationOnMouseDown = 0;
@@ -57,188 +59,265 @@ var viseme_adjustment;
 var viseme_buffer, viseme_time_buffer, viseme_dur, viseme_start;
 var startup_time, prev_frame_time;
 
+
+/*
+This is the first function that is called by the HTML Script.
+It is responsible for the creation of all the face parts, and defines color, sizes, orientations, etc.
+**See kiwi.html or chili.html for types of the input arguments.**
+*/
 function startFace(bkgd_color,
-           robot_name,
-           ros_uri,
-           cm_per_pixel,
-           viseme_adj,
-           eye_white_color,
-           eye_iris_color,
-           eye_size,
-           eye_height,
-           eye_separation,
-           eye_iris_size,
-           eye_pupil_scale,
-           eye_pupil_shape,
-           eyelid_width,
-           eyelid_height,
-           eyelid_arch,
-           nose_color,
-           nose_x,
-           nose_y,
-           nose_width,
-           nose_height,
-           mouth_color,
-           mouth_x,
-           mouth_y,
-           mouth_width,
-           mouth_height,
-           mouth_thickness,
-           mouth_opening,
-           mouth_width_scale,
-           upper_lip_height_scale,
-           lower_lip_height_scale,
-           brow_color,
-           brow_width,
-           brow_height,
-           brow_thickness,
-           brow_arch){
-    d = new Date();
-    startup_time = d.getTime()
-    prev_frame_time = startup_time
-    viseme_buffer = []
-    viseme_time_buffer = []
-    poked = false
-    poke_start_time=0
+       robot_name,
+       ros_uri,
+       cm_per_pixel,
+       viseme_adj,
+       eye_white_color,
+       eye_iris_color,
+       eye_size,
+       eye_height,
+       eye_separation,
+       eye_iris_size,
+       eye_pupil_scale,
+       eye_pupil_shape,
+       eyelid_width,
+       eyelid_height,
+       eyelid_arch,
+       nose_color,
+       nose_x,
+       nose_y,
+       nose_width,
+       nose_height,
+       mouth_color,
+       mouth_x,
+       mouth_y,
+       mouth_width,
+       mouth_height,
+       mouth_thickness,
+       mouth_opening,
+       mouth_dimple_size,
+       upper_lip_height_scale,
+       lower_lip_height_scale,
+       brow_color,
+       brow_width,
+       brow_height,
+       brow_thickness,
+       brow_innersize){
 
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
-    viseme_adjustment=viseme_adj
-    // camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-    camera = new THREE.OrthographicCamera(window.innerWidth/-2, window.innerWidth/2, window.innerHeight/2, window.innerHeight/-2, 1, 2000)
+          d = new Date();
+          startup_time = d.getTime()
+          prev_frame_time = startup_time
+          viseme_buffer = []
+          viseme_time_buffer = []
+          poked = false
+          poke_start_time=0
 
-    camera.position.set( 0, -eye_height, camera_depth );
+          parts = []
 
-    scene = new THREE.Scene();
-    parts = []
-
-    background_color = bkgd_color;
-    cm_per_px = cm_per_pixel;
-    ros_master_uri = ros_uri;
+          background_color = bkgd_color;
+          cm_per_px = cm_per_pixel;
+          ros_master_uri = ros_uri;
 
 
-    // addEyes(white_color, iris_color, size, height, separation, iris_size, pupil_scale, pupil_shape)
-    addEyes(eye_white_color,
-        eye_iris_color,
-        eye_size,
-        eye_height,
-        eye_separation,
-        eye_iris_size,
-        eye_pupil_scale,
-        eye_pupil_shape);
+          container = document.createElement( 'div' );
+          container.setAttribute("id", "face-div");
+          document.body.appendChild( container );
+          viseme_adjustment=viseme_adj
 
-    // addLids(color, width, height, arch)
-    addLids(background_color,
-        eyelid_width,
-        eyelid_height,
-        eyelid_arch)
+          var elem = document.getElementById('face-div');
+          var params = { fullscreen:true };
+          two = new Two(params).appendTo(elem);
 
-    // addNose(color, x, y, width, height)
-    addNose(nose_color,
-        nose_x,
-        nose_y,
-        nose_width,
-        nose_height)
 
-    //addNose(0x000000, 0,0,10,10)
-    //addNose(0x000000, 0,100,10,10)
+          var rect = two.makeRectangle(windowHalfX, windowHalfY, window.innerWidth, window.innerHeight);
+          rect.fill = background_color;
+          rect.stroke = 'None'
 
-    // addMouth(color, x, y, width, height, thickness, opening, width_scale, ulip_h_scale, llip_h_scale)
-    addMouth( mouth_color,
-          mouth_x,
-          mouth_y,
-          mouth_width,
-          mouth_height,
-          mouth_thickness,
-          mouth_opening,
-          mouth_width_scale,
-          upper_lip_height_scale,
-          lower_lip_height_scale)
 
-    // addBrows(color, width, height, thickness, arch)
-    addBrows(brow_color,
-         brow_width,
-         brow_height,
-         brow_thickness,
-         brow_arch)
+          // addEyes(white_color, iris_color, size, height, separation, iris_size, pupil_scale, pupil_shape)
+          addEyes(eye_white_color,
+            eye_iris_color,
+            eye_size,
+            eye_height,
+            eye_separation,
+            eye_iris_size,
+            eye_pupil_scale,
+            eye_pupil_shape);
+          //
+          // addLids(color, width, height, arch)
+          addLids(background_color,
+            eyelid_width,
+            eyelid_height,
+            eyelid_arch)
 
-    last_blink = 0;
-    last_gaze = 0;
-    looking = false;
+          // addNose(color, x, y, width, height)
+          addNose(nose_color,
+            nose_x,
+            nose_y,
+            nose_width,
+            nose_height)
 
-    aus_l = []
-    aus_r = []
-    for(i=0;i<=n_aus+1;i++){
-    aus_l.push(0)
-    aus_r.push(0)
+          // addMouth(color, x, y, width, height, thickness, opening, dimple_size, ulip_h_scale, llip_h_scale)
+          addMouth( mouth_color,
+              mouth_x,
+              mouth_y,
+              mouth_width,
+              mouth_height,
+              mouth_thickness,
+              mouth_opening,
+              mouth_dimple_size,
+              upper_lip_height_scale,
+              lower_lip_height_scale)
+
+          // addBrows(color, width, height, thickness, arch)
+          addBrows(brow_color,
+             brow_width,
+             brow_height,
+             brow_thickness,
+             brow_innersize)
+
+          last_blink = 0;
+          last_gaze = 0;
+          looking = false;
+
+          aus_l = []
+          aus_r = []
+          for(i=0;i<=n_aus+1;i++){
+            aus_l.push(0)
+            aus_r.push(0)
+          }
+
+          document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+          document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+          document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+          window.addEventListener( 'resize', onWindowResize, false );
+
+          // Connecting to ROS
+          // -----------------
+
+          if(ros_master_uri == ""){
+              ros_master_uri = "ws://" + location.hostname + ":9090"
+          }
+          console.log("ROS master URI: " + ros_master_uri)
+
+          ros = new ROSLIB.Ros({
+              url : ros_master_uri
+          });
+
+          ros.on('connection', function() {
+              console.log('Connected to websocket server.');
+          });
+
+          ros.on('error', function(error) {
+              console.log('Error connecting to websocket server: ', error);
+              reload_page_to_retry_connecting();
+          });
+
+          ros.on('close', function() {
+              console.log('Connection to websocket server closed.');
+              reload_page_to_retry_connecting();
+          });
+
+          // Subscribing to a Topic
+          // ----------------------
+
+          listener = new ROSLIB.Topic({
+              ros : ros,
+              name : robot_name+'/face',
+              messageType : 'cordial_face/FaceRequest'
+          });
+
+          listener.subscribe(get_goal);
+
+          latency_listener = new ROSLIB.Topic({
+              ros : ros,
+              name : robot_name+'/latency/ROS',
+              messageType : 'std_msgs/String'
+          });
+          latency_listener.subscribe(get_latency);
+
+          latency_publisher = new ROSLIB.Topic({
+        ros : ros,
+        name : robot_name+'/latency/js',
+        messageType : 'std_msgs/String'
+          });
+
+          zeroFace(5)
+          //finally, start the animation loop.
+          two.bind('update', animate).play();
+}
+
+function reload_page_to_retry_connecting(wait_seconds=2) {
+    sleep(wait_seconds).then( function () {
+        document.location.reload(true);
+    });
+}
+
+function sleep(seconds) {
+  return new Promise(resolve => setTimeout(resolve, seconds*1000));
+}
+
+/**
+Receives and processes the FaceRequest Message sent from the face_keyframe_server
+message - a FaceRequest Message, which contains visemes and/or aus to send to the face.
+          the message also contains timing information and magnitude information.
+**/
+function get_goal(message) {
+  if(message.visemes.length!=0){
+    console.log('Message received: visemes: ' + message.visemes);
+    console.log(message)
+    stop_visemes()
+    // play_visemes(message.visemes, message.viseme_ms, message.times, message.start)
+    play_visemes(message.visemes, 35, message.times, message.start)
+  }
+
+  if(message.aus.length!=0){
+    console.log('Message received: aus: ' + message.aus + " degrees: " + message.au_degrees + " side: " + message.side)
+    for(a in message.aus){
+      this_au = message.aus[a]
+      console.log(this_au)
+      if(message.au_ms[a]<0){
+        console.log("Time cannot be less than zero!")
+
+      } else if(this_au == 'ZeroFace'){
+        zeroFace(message.au_ms)
+        console.log('clearing AUS')
+
+      } else {
+        //if the au is unilateral, it will have an 'r' or 'l' at the end to indicate the side to move
+        if(this_au.slice(-1) == 'l' || this_au.slice(-1) == 'r'){
+          au(parseInt(this_au.slice(0,-1)), message.au_degrees[a], this_au.slice(-1))
+        }
+        //otherwise assume bilateral movement
+        else {
+          au(parseInt(this_au), message.au_degrees[a])
+        } if(parseInt(this_au) == 43){
+          lockIdleUntil = new Date().getTime() + message.au_ms + 500
+          console.log(new Date().getTime())
+          console.log(lockIdleUntil)
+        }
+      }
+
     }
-
-    lookat(0,0,500);
-    zeroFace(500);
-
-    renderer = new THREE.CanvasRenderer();
-    renderer.setClearColor( background_color );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.sortElements = false;
-    container.appendChild( renderer.domElement );
-
-    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-    document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-    document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-    //
-
-    window.addEventListener( 'resize', onWindowResize, false );
-
-    // Connecting to ROS
-    // -----------------
-
-    if(ros_master_uri == ""){
-    ros_master_uri = "ws://" + location.hostname + ":9090"
+    move_face(message.au_ms)
+  }
+  if(message.hold_gaze==1){
+    looking = true
+  }
+  if(message.hold_gaze==2){
+    looking = false
+  }
+  if(message.retarget_gaze){
+    console.log("Message received: gaze: " + message.gaze_target.x + "," + message.gaze_target.y + "," +  message.gaze_target.z)
+    x = message.gaze_target.x
+    y = message.gaze_target.y
+    z = message.gaze_target.z
+    gaze_vel = message.gaze_vel
+    if(gaze_vel > 0){
+      lookat_real_world(x, y, z, gaze_vel)
     }
-    console.log("ROS master URI: " + ros_master_uri)
-
-    ros = new ROSLIB.Ros({
-    url : ros_master_uri
-    });
-
-    ros.on('connection', function() {
-    console.log('Connected to websocket server.');
-    });
-
-    ros.on('error', function(error) {
-    console.log('Error connecting to websocket server: ', error);
-    });
-
-    ros.on('close', function() {
-    console.log('Connection to websocket server closed.');
-    });
-
-    // Subscribing to a Topic
-    // ----------------------
-
-    listener = new ROSLIB.Topic({
-    ros : ros,
-    name : robot_name+'/face',
-    messageType : 'cordial_face/FaceRequest'
-    });
-
-    listener.subscribe(get_goal);
-
-    latency_listener = new ROSLIB.Topic({
-    ros : ros,
-    name : robot_name+'/latency/ROS',
-    messageType : 'std_msgs/String'
-    });
-    latency_listener.subscribe(get_latency);
-
-    latency_publisher = new ROSLIB.Topic({
-    ros : ros,
-    name : robot_name+'/latency/js',
-    messageType : 'std_msgs/String'
-    });
-
-    animate();
+    else {
+      lookat_real_world(x, y, z, 1.7) //1.7 rad/s is an average human eye saccade speed
+    }
+  }
 }
 
 function get_latency(msg){
@@ -248,301 +327,269 @@ function get_latency(msg){
     latency_publisher.publish({data:msg.data+":"+time})
 }
 
-
-function facePart(name, x, y, z, xs, ys, zs){
-    this.name = name;
-    this.idle_pos = {x:x, y:y, z:z};
-    this.idle_rot = {x:0,y:0,z:0};
-    this.idle_scale = {x:1,y:1,z:1};
-    //below MUST be set after assembling the part
-    this.idle_size = {x:0, y:0, z:0};
-
-    this.threedee = new THREE.Object3D();
-    this.threedee.position.x = x;
-    this.threedee.position.y = y;
-    if(typeof(z) == 'undefined'){
-    this.threedee.position.z = 0;
-    } else {
-    this.threedee.position.z = z;
+/*
+Checks to see if any visemes have been added to the buffer.
+If they have, it then plays the viseme for the indicated time
+*/
+function check_and_play_visemes(){
+    if(viseme_buffer.length==0){return}
+    d = new Date();
+    elapsed = d.getTime()-viseme_start+viseme_dur;
+    elapsed = elapsed/1000.0
+    if(viseme_time_buffer[0]>elapsed){return};
+    while(viseme_time_buffer[0]<elapsed){
+      play_viseme = viseme_buffer.shift()
+      viseme_time = viseme_time_buffer.shift()
     }
-    this.threedee.name = name
-    parts.push(this)
-    scene.add(this.threedee)
-    this.rot = function(goal, t){
-    TWEEN.remove(this.threedee.rotation);
-
-    var goal = goal;
-    var target = this.threedee.rotation;
-    var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
-    tween.easing(TWEEN.Easing.Quadratic.InOut);
-    tween.start();
-    }
-    this.pos = function(goal, t){
-    TWEEN.remove(this.threedee.position);
-
-    var goal = goal;
-    var target = this.threedee.position;
-    var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
-    tween.easing(TWEEN.Easing.Quadratic.InOut);
-    tween.start();
-    }
-    this.scale = function(goal, t){
-    TWEEN.remove(this.threedee.scale);
-
-    var goal = goal;
-    var target = this.threedee.scale;
-    var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
-    tween.easing(TWEEN.Easing.Quadratic.InOut);
-    tween.start();
-    }
-    this.size = function(){
-    var helper = new THREE.BoundingBoxHelper(this.threedee, 0xff0000);
-    helper.update();
-    var ret = new THREE.Vector3(helper.box.max.x-helper.box.min.x, helper.box.max.y-helper.box.min.y, helper.box.max.z-helper.box.min.z);
-    return(ret);
-    }
-
+    // console.log(elapsed, viseme_time)
+    console.log(play_viseme, viseme_dur)
+    viseme(play_viseme,viseme_dur);
 }
 
-function getPart(name){
-    for(i in parts){
-    if(parts[i].name==name){
-        return parts[i];
-    }
-    }
-    return null;
-}
-
-function zeroFace(t){
-    for(a in aus_l){
-    au(a,0)
-    }
-    move_face(t)
-}
-
-function oneFace(t){
-    for(a in aus_l){
-    au(a,1.0)
-    }
-    move_face(t)
-}
-
-
-function lookat(x,y,z,t){
-    //console.log("Looking at: " + x + "," + y + "," + z)
-
-    var leye = getPart("leye").threedee
-
-    var leyex = x-leye.position.x
-    var leyey = y-leye.position.y
-    var leyez = z-leye.position.z
-
-    var xgoal = -Math.atan2(leyey, leyez)
-
-    var ygoal = Math.atan2(leyex*Math.cos(xgoal), leyez)
-
-    getPart("leye").rot({x: xgoal, y:ygoal}, t);
-
-    var reye = getPart("reye").threedee
-
-    var reyex = x-reye.position.x
-    var reyey = y-reye.position.y
-    var reyez = z-reye.position.z
-
-    xgoal = -Math.atan2(reyey, reyez)
-    ygoal = Math.atan2(reyex*Math.cos(xgoal), reyez)
-
-    getPart("reye").rot({x: xgoal, y:ygoal}, t);
-}
-
-// for looking at things IRL; use avg velocity rather than time
-// velocity is in radians/sec
-function lookat_real_world(realx,realy,realz,vel){
-    x = realx/cm_per_px;
-    y = realy/cm_per_px;
-    z = realz/cm_per_px;
-
-    var leye = getPart("leye").threedee
-
-    var leyex = x-leye.position.x
-    var leyey = y-leye.position.y
-    var leyez = z-leye.position.z
-
-    var xgoal = -Math.atan2(leyey, leyez)
-    var ygoal = Math.atan2(leyex*Math.cos(xgoal), leyez)
-
-    var xdist = Math.abs(leye.rotation.x-xgoal)
-    var ydist = Math.abs(leye.rotation.y-ygoal)
-
-    var reye = getPart("reye").threedee
-
-    var reyex = x-reye.position.x
-    var reyey = y-reye.position.y
-    var reyez = z-reye.position.z
-
-    xgoal = -Math.atan2(reyey, reyez)
-    ygoal = Math.atan2(reyex*Math.cos(xgoal), reyez)
-
-    xdist = Math.max(Math.abs(reye.rotation.x-xgoal),xdist)
-    ydist = Math.max(Math.abs(reye.rotation.y-ygoal),ydist)
-
-    t = Math.max(xdist/vel, ydist/vel)
-
-    lookat(x,y,z,t*1000)
-}
-
-
-function zero_aus(to_zero, t){
-    for(a in to_zero){
-    au(to_zero[a],0)
-    }
-    move_face(t)
-}
-
-function zero_aus_no_move(to_zero){
-    for(a in to_zero){
-    au(to_zero[a],0)
-    }
-}
-
+/*
+adds a viseme information to the buffers.
+visemes - a string representing the type of viseme to play
+time_per - the length of the viseme to play
+times - the time at which the viseme should be played
+*/
 function play_visemes(visemes, time_per, times){
     viseme_buffer = visemes
+    console.log(times)
+    for(time in times){
+      times[time]-=.035;
+    }
+    console.log(times)
     viseme_time_buffer = times
     viseme_dur = time_per
     d = new Date();
     viseme_start = d.getTime();
 }
 
-function check_and_play_visemes(){
-    if(viseme_buffer.length==0){return}
-    d = new Date();
-    elapsed = d.getTime()-viseme_start+viseme_dur;
-    elapsed=elapsed/1000.0
-    if(viseme_time_buffer[0]>elapsed){return};
-    while(viseme_time_buffer[0]<elapsed){
-    play_viseme = viseme_buffer.shift()
-    viseme_time = viseme_time_buffer.shift()
-    }
-    console.log(elapsed, viseme_time)
-    viseme(play_viseme,viseme_dur);
-}
-
-
-function old_visemes(visemes, time_per, times, start){
-    please_stop = false
-    adj = 1.0-viseme_adjustment
-    d = new Date();
-    start = d.getTime();
-    i = 0
-    interval_ms = 10
-    function check_and_play(){
-    d = new Date();
-    elapsed = d.getTime()-start;
-    elapsed=elapsed/1000.0
-    if(times[i]/adj<=elapsed){
-        viseme(visemes[i],time_per);
-        i++;
-        while(times[i]/adj<elapsed+interval_ms/1000){i++};
-    }
-    if(i >= visemes.length || please_stop){return}
-    else {setTimeout(check_and_play, interval_ms)};
-    }
-    setTimeout(check_and_play, interval_ms)
-}
-
+/*
+Stops the face from speaking
+*/
 function stop_visemes(){
     please_stop = true
 }
 
+/*
+Sets AU on a certain side to the given degree.
+id - an integer representing the AU to change
+degree - a float from 0 to 1 to control the intensity of the AU
+side - a string indicating the side of the AU to modify (does both if left blank)
+*/
+function au(id, degree, side){
+
+    if(side == "r"){
+      aus_r[id] = degree
+    } else if(side == "l"){
+      aus_l[id] = degree
+    } else{
+      aus_l[id] = degree
+      aus_r[id] = degree
+    }
+}
+
+/*
+Zeros all the AU's and moves the face to its neutral position.
+t - time to move in milliseconds
+*/
+function zeroFace(t){
+    for(a in aus_l){
+        au(a,0)
+    }
+    move_face(t)
+}
+
+/*
+Sets all AUs to One and moves to it.
+t - time to move in milliseconds
+*/
+function oneFace(t){
+    for(a in aus_l){
+       au(a,1.0)
+    }
+    move_face(t)
+}
+
+/*
+zeros an array of aus, and moves to the face.
+to_zero - an array of integers representing the number of the aus to zero
+t -  time to move to the face (in milliseconds)
+*/
+function zero_aus(to_zero, t){
+    for(a in to_zero){
+  au(to_zero[a],0)
+    }
+    move_face(t)
+}
+
+/*
+Same as above, but it does not move the face.
+*/
+function zero_aus_no_move(to_zero){
+    for(a in to_zero){
+      au(to_zero[a],0)
+    }
+}
+
+/*
+Calculates the positions of all the facial features based on the current value of all the aus
+t - float representing the milliseconds it should take to move to the current AU set
+notViseme - flag to determine if the movement is a viseme. If it is, we only will modify the mouth shape
+*/
+function move_face(t, notViseme){
+    if(notViseme == undefined){
+      notViseme = true
+    }
+
+    if(notViseme){
+      // ***** BROWS ***** (AU 1, 2, 4)
+      lbrow = getPart("lbrow")
+      rbrow = getPart("rbrow")
+
+      var max_x = lbrow.idleControlPoint.x1/2
+      var max_y = lbrow.idle_pos.y/3
+
+      lInner = {x:lbrow.idleControlPoint.x0, y:lbrow.idleControlPoint.y0}
+      rInner = {x:rbrow.idleControlPoint.x0, y:rbrow.idleControlPoint.y0}
+
+      lInner.y -= max_y * (1.5*aus_l[1] + .1*aus_l[2] - 1.2*aus_l[4])
+      lInner.x -= max_x * (0.15*aus_l[1] + 0.5*aus_l[4])
+      rInner.y -= max_y * (1.5*aus_r[1] + .1*aus_r[2] - 1.2*aus_r[4])
+      rInner.x += max_x * (0.15*aus_r[1]  + 0.5*aus_r[4])
+
+      lMid = {x:lbrow.idleControlPoint.x1, y:lbrow.idleControlPoint.y1}
+      rMid = {x:rbrow.idleControlPoint.x1, y:rbrow.idleControlPoint.y1}
+
+      lMid.y -= max_y * (0.1*aus_l[1] + aus_l[2] - 0.6*aus_l[4])
+      lMid.x -= max_x * (aus_l[1] + -0.5*aus_l[2] + aus_l[4])
+      rMid.y -= max_y * (0.1*aus_r[1] + aus_r[2]  - 0.6*aus_r[4])
+      rMid.x += max_x * (aus_r[1] + -0.5*aus_r[2] + aus_r[4])
+
+      lOuter = {x:lbrow.idleControlPoint.x2, y:lbrow.idleControlPoint.y2}
+      rOuter = {x:rbrow.idleControlPoint.x2, y:rbrow.idleControlPoint.y2}
+
+      lOuter.y -= max_y * (0.5*aus_l[2] + 0.1*aus_l[4])
+      lOuter.x -= max_x * (-.2*aus_l[2]  + 0.2*aus_l[4])
+      rOuter.y -= max_y * (0.5*aus_r[2] + 0.1*aus_r[4])
+      rOuter.x += max_x * (-.2*aus_r[2]  + 0.2*aus_l[4])
+
+
+      rBrow = {x0:rOuter.x,y0:rOuter.y , x1:rMid.x,y1:rMid.y , x2:rInner.x,y2:rInner.y}
+      lBrow = {x0:lOuter.x,y0:lOuter.y , x1:lMid.x,y1:lMid.y , x2:lInner.x,y2:lInner.y}
+
+      rbrow.interpolateBrows(rBrow, t);
+      lbrow.interpolateBrows(lBrow, t);
+
+      // ***** EYELIDS ******
+      // closure = -.5
+      // urlid = getPart("urlid");
+      // ullid = getPart("ullid");
+      // lrlid = getPart("lrlid");
+      // lllid = getPart("lllid");
+      //
+      //
+      // // eyelid flattening (au 7)
+      // lid_flattenr = .6*aus_r[7]
+      // lid_flattenl = .6*aus_l[7]
+      //
+      // lrlid.scale({y:lrlid.idle_scale.y*(1-lid_flattenr)},t);
+      // lllid.scale({y:lllid.idle_scale.y*(1-lid_flattenl)},t);
+      //
+      // // eyelid closing (aus 5,7,43)
+      urlid_p = urlid.idle_pos.y;
+      lrlid_p = lrlid.idle_pos.y;
+      ullid_p = ullid.idle_pos.y;
+      lllid_p = lllid.idle_pos.y;
+      // lid_width = ullid.idle_size.x/4;
+      //
+      var eyeSize = getPart('reye').size
+
+      r_eye_width = eyeSize//(urlid_p-lrlid_p)+urlid.threedee.scale.y*lid_width+lrlid.threedee.scale.y*lid_width;
+      l_eye_width = eyeSize//(ullid_p-lllid_p)+ullid.threedee.scale.y*lid_width+lllid.threedee.scale.y*lid_width;
+      //
+      // //[-.5,0]
+      openr = -.5*aus_r[5]
+      openl = -.5*aus_l[5]
+      //
+      // //[0,.6]
+      closer = .6*aus_r[7]
+      closel = .6*aus_l[7]
+      //
+      // //[-.5,1]
+      closurer = (openr+closer)+aus_r[43]*(1-(openr+closer))
+      closurel = (openl+closel)+aus_l[43]*(1-(openl+closel))
+      //
+      urlid.pos({y:urlid_p+r_eye_width/2*(closurer)},t);
+      lrlid.pos({y:lrlid_p-r_eye_width/2*(closurer)},t);
+      ullid.pos({y:ullid_p+l_eye_width/2*(closurel)},t);
+      lllid.pos({y:lllid_p-l_eye_width/2*(closurel)},t);
+
+      // ***** NOSE *****
+
+      // nose wrinkle (raise) (au 9)
+      wrinkle_dist = 30*aus_l[9];
+      nose = getPart("nose");
+      nose.pos({y:nose.idle_pos.y+wrinkle_dist}, t);
+
+      // nose width (aus 38,39)
+      width_scale = 1+.35*aus_l[38]-.35*aus_l[39];
+      nose = getPart("nose");
+      // nose.scale({x:nose.idle_scale.x*width_scale}, t);
+
+    }
+    // ***** MOUTH *****
+    ulip=getPart("ulip");
+    llip=getPart("llip");
+
+    max_up_dist = (nose.idle_pos.y-ulip.idle_pos.y)/1.5
+    max_down_dist = (nose.idle_pos.y-llip.idle_pos.y)/1.5
+    max_x_variation = (ulip.idleControlPoint.x0 - ulip.idleControlPoint.x3) / 4; //should be width divided by 2 I think
+
+    lcorner = {x:ulip.idleControlPoint.x3, y:ulip.idleControlPoint.y3}
+    rcorner = {x:ulip.idleControlPoint.x0, y:ulip.idleControlPoint.y0}
+
+    lcorner.x += max_x_variation*(.2*aus_l[12] + .05*aus_l[13] + .25*aus_l[14] -.1*aus_l[26] -.3*aus_l[27] +.35*aus_l[17]-.7*aus_l[18] + .25*aus_l[20] -.2*aus_l[23] -.1*aus_l[24])/1.1
+    lcorner.y += max_down_dist*(-.2*aus_l[25] -.2*aus_l[26] + .7*aus_l[13]-1.5*aus_l[15]-.5*aus_l[27] - .2*aus_l[20] -.3*aus_l[23] -.5*aus_l[24])/3.4
+    rcorner.x -= max_x_variation*(.2*aus_r[12] + .05*aus_r[13] + .25*aus_r[14]-.1*aus_r[26] -.3*aus_r[27] +.35*aus_r[17]-.7*aus_r[18] + .25*aus_r[20] -.2*aus_r[23] -.1*aus_r[24])/1.1
+    rcorner.y += max_down_dist*(-.2*aus_r[25] -.2*aus_r[26] + .7*aus_r[13]-1.5*aus_r[15]-.5*aus_r[27] - .2*aus_r[20] -.3*aus_r[23] -.5*aus_r[24])/3.4
+
+
+    upperl = {x:ulip.idleControlPoint.x2, y:ulip.idleControlPoint.y2}
+    upperr = {x:ulip.idleControlPoint.x1, y:ulip.idleControlPoint.y1}
+
+    upperl.x += max_x_variation*(.55*aus_l[10] + .25*aus_l[14]-.4*aus_l[18]+ .25*aus_l[20] -.1*aus_l[23])/1.05
+    upperl.y += max_up_dist*(.1*aus_l[25] +.3*aus_l[26] +.6*aus_l[27] + .55*aus_l[10]+.35*aus_l[17])/2.2
+    upperr.x -= max_x_variation*(.55*aus_r[10] + .25*aus_r[14]-.4*aus_r[18] + .25*aus_r[20] -.1*aus_r[23])/1.05
+    upperr.y += max_up_dist*(.1*aus_r[25] +.3*aus_r[26] +.6*aus_r[27] + .55*aus_r[10]+.35*aus_r[17])/2.2
+
+
+
+    lowerl = {x:llip.idleControlPoint.x2, y:llip.idleControlPoint.y2}
+    lowerr = {x:llip.idleControlPoint.x1, y:llip.idleControlPoint.y1}
+
+    lowerl.x += max_x_variation*(.25*aus_l[14] + .5*aus_l[16] + .2*aus_l[26]-.4*aus_l[18]+ .25*aus_l[20] -.2*aus_l[23])/1.05
+    lowerl.y += max_down_dist*(-.4*aus_l[25] -.7*aus_l[26] -1.6*aus_l[27]+ .55*aus_l[10] -.2*aus_l[16] +.45*aus_l[17])/2.2
+    lowerr.x -= max_x_variation*(.25*aus_r[14] + .5*aus_r[16] + .2*aus_r[26]-.4*aus_r[18] + .25*aus_r[20] -.2*aus_r[23])/1.05
+    lowerr.y += max_down_dist*(-.4*aus_r[25] -.7*aus_r[26] -1.6*aus_r[27] + .55*aus_r[10] -.2*aus_r[16] +.45*aus_r[17])/2.2
+
+    upperLip = {x0:rcorner.x,y0:rcorner.y, x1:upperr.x,y1:upperr.y, x2:upperl.x,y2: upperl.y , x3:lcorner.x,y3:lcorner.y}
+    lowerLip = {x0:rcorner.x,y0:rcorner.y, x1:lowerr.x,y1:lowerr.y, x2:lowerl.x,y2: lowerl.y , x3:lcorner.x,y3:lcorner.y}
+
+
+    ulip.interpolateLips(upperLip, t);
+    llip.interpolateLips(lowerLip, t);
+}
+
+/*
+Sets the AUs for the respective viseme.
+viseme_name - a string that explains the viseme
+t - a float to represent the time to move the face to the new position
+*/
 function viseme(viseme_name, t){
     console.log("Viseme: " + viseme_name)
     switch(viseme_name){
-
-    case "M_B_P": //au 23, 24?, 14?,
-    au(23, .75)
-    au(14, .25)
-
-    zero_aus_no_move([10,11,16,17,25,26,27])
-    move_face(t)
-    break;
-
-    case "AA_AH": //au 25, 26, 14
-    au(26, 1)
-    au(25, .5)
-    au(14, .5)
-
-    zero_aus_no_move([11,12,16,17,18,20,27])
-    move_face(t)
-    break;
-
-    case "AO_AW": //au 25, 26, 27
-    au(26, .75)
-    au(27, 1)
-    zero_aus_no_move([11,12,16,17,18,20])
-    move_face(t)
-
-
-    break;
-
-    case "EH_AE_AY": //au 25, 26, 14
-    au(14, .75)
-    au(26, .75)
-
-    zero_aus_no_move([11,12,16,17,18,20,27])
-    move_face(t)
-
-    break;
-
-    case "CH_SH_ZH": //au 18, 25, 10
-    au(10, .75)
-    au(18, 1)
-    zero_aus_no_move([11,12,14,16,17,20,26,27])
-    move_face(t)
-    break;
-
-    case "N_NG_D_Z": //au 10,
-    au(10,.6)
-    au(18,.5)
-
-    zero_aus_no_move([11,16,17,25,26,27])
-    move_face(t)
-
-    break;
-
-    case "R_ER": //au 10
-    au(10,1)
-    au(18,.7)
-
-    zero_aus_no_move([11,12,14,16,17,20,26,27])
-    move_face(t)
-
-    break;
-
-    case "EY": //au 25, 26, 14
-    au(26,1)
-    zero_aus_no_move([11,12,16,17,18,20,27])
-    move_face(t)
-    break;
-
-    case "L": //au 25
-    au(10,.5)
-    au(18,.5)
-
-    zero_aus_no_move([11,12,14,16,17,20,26,27])
-    move_face(t)
-
-    break;
-
-    // "you" "too" "moo"
-    case "OO": //au 10, 25,
-    au(10,1)
-    au(25,1)
-    au(18,1)
-
-    zero_aus_no_move([11,12,14,16,17,20,26,27])
-    move_face(t)
-
-    break;
 
     // --------------- CONSONANTS ---------------------//
 
@@ -553,7 +600,7 @@ function viseme(viseme_name, t){
     au(14, .25)
     au(24, .7)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // F,V -> oFFer, Vest
@@ -563,7 +610,7 @@ function viseme(viseme_name, t){
     au(20,0.4);
     au(25,.8);
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // TH, TH - THin, THis
@@ -573,7 +620,7 @@ function viseme(viseme_name, t){
     au(18,.75)
     au(25,.5)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // L,T,D,Z,S,N -> Light, Top, DaD, Zebra, Sad, Nope
@@ -581,7 +628,7 @@ function viseme(viseme_name, t){
     zero_aus_no_move([10,13,14,16,18,20,23,24,25,26,27])
     au(25,.65)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // R,SH,ZH,CH -> Red, SHould, aSia, CHart
@@ -591,7 +638,7 @@ function viseme(viseme_name, t){
     au(18, 1)
     au(25, 1)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // K,G,NG -> Cat, Game, thiNG
@@ -601,7 +648,7 @@ function viseme(viseme_name, t){
     // au(18,.5)
     au(26,.5)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // ------------------ VOWELS ------------------------//
@@ -611,7 +658,7 @@ function viseme(viseme_name, t){
     au(26,1)
     au(20,1)
     au(10,.4)
-    move_face(t)
+    move_face(t, false)
     break;
 
     // OO -> bOOt
@@ -626,7 +673,7 @@ function viseme(viseme_name, t){
     au(25,1)
     au(26,.4)
 
-    move_face(t)
+    move_face(t, false)
 
     break;
 
@@ -637,7 +684,7 @@ function viseme(viseme_name, t){
     au(25, .5)
     au(23,1)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // AE,AU,A,AY,EH -> trAp, mOUth, fAther, fAce, drEss
@@ -648,7 +695,7 @@ function viseme(viseme_name, t){
     au(25, .7)
     au(26, .75)
 
-    move_face(t)
+    move_face(t, false)
     break;
 
     // AW,OI,O -> thOUght, chOIce, gOAt
@@ -657,507 +704,379 @@ function viseme(viseme_name, t){
     au(26, .5)
     au(27, 1)
 
-    move_face(t)
+    move_face(t, false)
     break;
-    
+
     case "IDLE":
     zeroFace(t)
     break;
     }
 }
 
-function blink(t){
-    au(43, 1.0, t/2);
-    blink_time=t
+/*
+Create a new face part object that tracks the metadata for the THREE.Object3D, which is the part that is actually drawn.
+Lip objects are created with a different constructor that enables control points rather than scale, rotate, translate
+name - a string that represents the name of the face part
+x - float representing x offset
+y - float representing y offset
+z - float representing z offset
+*/
+function facePart(name, group, x, y){
+    this.name = name;
+    this.idle_pos = {x:x, y:y};
+    this.idle_rot = 0;
+    this.idle_scale = 1;
+    //below MUST be set after assembling the part
+    this.idle_size = {x:0, y:0, z:0};
 
-    d = new Date()
-    blink_end = d.getTime()+t/2;
-    blinking=true
-}
+    this.group = group
+    this.group.translation.set(x,y)
 
+    this.group.id = name
+    parts.push(this)
+    // scene.add(this.threedee)
+    this.rot = function(goal, t){
+        TWEEN.remove(this.group.rotation);
 
-function au(id, degree, side){
-    //console.log("Playing AU: " + id + " degree: " + degree + " time: " + t + " side: " + side);
-
-    if(side == "r"){
-    aus_r[id] = degree
-    } else if(side == "l"){
-    aus_l[id] = degree
-    } else{
-    aus_l[id] = degree
-    aus_r[id] = degree
+        var goal = goal;
+        var target = this.group.rotation;
+        var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
+        tween.easing(TWEEN.Easing.Quadratic.InOut);
+        tween.start();
     }
-}
 
-function move_face(t){
-    // ***** BROWS *****
+    this.pos = function(goal, t){
+      TWEEN.remove(this.group.translation);
 
-    //brow rotation (au 1)
-    brow_rot_targetl = (Math.PI/8)*aus_l[1];
-    brow_rot_targetr = (Math.PI/8)*aus_r[1];
-    rbrow = getPart("rbrow");
-    lbrow = getPart("lbrow");
+      var goal = goal;
+      var target = this.group.translation;
+      var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
+      tween.easing(TWEEN.Easing.Quadratic.InOut);
+      tween.start();
+    }
 
-    rbrow.rot({z:rbrow.idle_rot.z+brow_rot_targetr}, t);
-    lbrow.rot({z:lbrow.idle_rot.z-brow_rot_targetl}, t);
+    this.scale = function(goal, t){
+      TWEEN.remove(this.group.scale);
 
-    //brow height (aus 2,4)
-    brow_raise_targetr = 1 + .75*aus_r[2] - .5*aus_r[4]
-    brow_raise_targetl = 1 + .75*aus_l[2] - .5*aus_l[4]
-
-    rbrow.scale({y:rbrow.idle_scale.y*brow_raise_targetr},t);
-    lbrow.scale({y:lbrow.idle_scale.y*brow_raise_targetl},t);
-
-    //brow lowering (au 4)
-    brow_height_targetl = -20*aus_l[4]
-    brow_height_targetr = -20*aus_r[4]
-
-    rbrow.pos({y:rbrow.idle_pos.y+brow_height_targetr}, t);
-    lbrow.pos({y:lbrow.idle_pos.y+brow_height_targetl}, t);
-
-
-    // ***** EYELIDS ******
-    closure = -.5
-    urlid = getPart("urlid");
-    ullid = getPart("ullid");
-    lrlid = getPart("lrlid");
-    lllid = getPart("lllid");
-
-
-    // eyelid flattening (au 7)
-    lid_flattenr = .6*aus_r[7]
-    lid_flattenl = .6*aus_l[7]
-
-    lrlid.scale({y:lrlid.idle_scale.y*(1-lid_flattenr)},t);
-    lllid.scale({y:lllid.idle_scale.y*(1-lid_flattenl)},t);
-
-    // eyelid closing (aus 5,7,43)
-    urlid_p = urlid.idle_pos.y;
-    lrlid_p = lrlid.idle_pos.y;
-    ullid_p = ullid.idle_pos.y;
-    lllid_p = lllid.idle_pos.y;
-    lid_width = ullid.idle_size.x/4;
-
-    r_eye_width = (urlid_p-lrlid_p)+urlid.threedee.scale.y*lid_width+lrlid.threedee.scale.y*lid_width;
-    l_eye_width = (ullid_p-lllid_p)+ullid.threedee.scale.y*lid_width+lllid.threedee.scale.y*lid_width;
-
-    //[-.5,0]
-    openr = -.5*aus_r[5]
-    openl = -.5*aus_l[5]
-
-    //[0,.6]
-    closer = .6*aus_r[7]
-    closel = .6*aus_l[7]
-
-    //[-.5,1]
-    closurer = (openr+closer)+aus_r[43]*(1-(openr+closer))
-    closurel = (openl+closel)+aus_l[43]*(1-(openl+closel))
-
-    urlid.pos({y:urlid_p-r_eye_width/2*(closurer)},t);
-    lrlid.pos({y:lrlid_p+r_eye_width/2*(closurer)},t);
-    ullid.pos({y:ullid_p-l_eye_width/2*(closurel)},t);
-    lllid.pos({y:lllid_p+l_eye_width/2*(closurel)},t);
-
-    // ***** NOSE *****
-
-    // nose wrinkle (raise) (au 9)
-    wrinkle_dist = 30*aus_l[9];
-    nose = getPart("nose");
-    nose.pos({y:nose.idle_pos.y+wrinkle_dist}, t);
-
-    // nose width (aus 38,39)
-    width_scale = 1+.35*aus_l[38]-.35*aus_l[39];
-    nose = getPart("nose");
-    nose.scale({x:nose.idle_scale.x*width_scale}, t);
-
-
-        var circleShape = new THREE.Shape();
-        circleShape.moveTo(0,0)
-        circleShape.arc(0,0,20,0,6.6, true)
-
-    // rbrow.threedee.children[0].geometry.vertices = new THREE.ShapeGeometry( circleShape )
-        // rbrow.threedee.children[0].geometry.verticesNeedUpdate = true
-        // rbrow.threedee.children[0].geometry.elementsNeedUpdate = true;
-        // rbrow.threedee.children[0].geometry.morphTargetsNeedUpdate = true;
-        // rbrow.threedee.children[0].geometry.uvsNeedUpdate = true;
-        // rbrow.threedee.children[0].geometry.normalsNeedUpdate = true;
-        // rbrow.threedee.children[0].geometry.colorsNeedUpdate = true;
-        // rbrow.threedee.children[0].geometry.tangentsNeedUpdate = true;
-
-
-
-    // ***** MOUTH *****
-    ulip=getPart("ulip");
-    llip=getPart("llip");
-
-    max_up_dist = (nose.idle_pos.y-ulip.idle_pos.y)/1.5
-    max_down_dist = (nose.idle_pos.y-llip.idle_pos.y)/1.5
-
-    // upper lip position (aus 10, 11)
-
-    upper_dist = max_up_dist*(.55*aus_l[10]+.25*aus_l[11]+.35*aus_l[17]+.2*aus_l[25]+.1*aus_l[26]+.75*aus_l[27])/2.2
-
-    // upper lip width (aus 11, 12, 14)
-
-    upper_w_scale = 1+.1*aus_l[11]+.2*aus_l[12]+.25*aus_l[14]+.25*aus_l[17]-.7*aus_l[18]+.35*aus_l[20]
-
-    // upper lip height (aus 10, 11, 12)
-
-    upper_h_scale = 1-1.5*aus_l[10]-.2*aus_l[11]+.2*aus_l[12]+.9*aus_l[13]-.3*aus_l[14]-2*aus_l[15]-aus_l[17]-.25*aus_l[20]-.5*aus_l[23]-.5*aus_l[24]-.25*aus_l[27]
-
-    // lower lip position
-
-    lower_dist = max_down_dist*(-.5*aus_l[16]+.35*aus_l[17]-.2*aus_l[25]-.5*aus_l[26]-.75*aus_l[27])/2.3
-
-    // lower lip width (aus 12, 14)
-
-    lower_w_scale = 1+.2*aus_l[12]+.25*aus_l[14]+.25*aus_l[16]+.25*aus_l[17]-.7*aus_l[18]+.35*aus_l[20]
-
-    // lower lip height (aus 12, 13, 14)
-
-    lower_h_scale = 1+.2*aus_l[12]+.9*aus_l[13]-.3*aus_l[14]-2*aus_l[15]-aus_l[17]-.25*aus_l[20]-.5*aus_l[23]-.5*aus_l[24]-.25*aus_l[27]
-
-
-    //adjust zero scales:
-    if(upper_w_scale == 0) upper_w_scale += 0.001;
-    if(upper_h_scale == 0) upper_h_scale += 0.001;
-    if(lower_w_scale == 0) lower_w_scale += 0.001;
-    if(lower_h_scale == 0) lower_h_scale += 0.001;
-
-    // move mouth
-    ulip.scale({x:ulip.idle_scale.x*upper_w_scale, y:ulip.idle_scale.y*upper_h_scale},t);
-    llip.scale({x:llip.idle_scale.x*lower_w_scale, y:llip.idle_scale.y*lower_h_scale},t);
-    ulip.pos({y:ulip.idle_pos.y+upper_dist},t);
-    llip.pos({y:llip.idle_pos.y+lower_dist},t);
-
-        console.log(rbrow.threedee.children[0].geometry)
+      var goal = goal;
+      var target = this.group.scale;
+      var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
+      tween.easing(TWEEN.Easing.Quadratic.InOut);
+      tween.start();
+    }
 
 }
 
 
-
+/*
+initializes the eye objects. Handles the placement within the facePart reference frame.
+Eyes are spheres with circular irises, circular pupils and a circular catchlight (the white shine)
+TODO: put the cat pupils in I guess
+*/
 function addEyes(white_color, iris_color, size, height, separation, iris_size, pupil_scale, pupil_shape){
-    var circleRadius = iris_size;
-    var circleShape = new THREE.Shape();
-    circleShape.moveTo(0,0)
-    circleShape.arc(0,0,iris_size,0,6.6, true)
 
-    if(pupil_shape=="round"){
-    pupilShape = circleShape;
-    } else if(pupil_shape="cat"){
-    pupilShape = new THREE.Shape();
-    pupilShape.moveTo(0,0);
-    //pupilShape.arc(0,0,iris_size,0,6.6, true);
-    pupilShape.ellipse(0,0,iris_size/3,iris_size,0,6.6,true);
-    } else {
-    pupilShape = circleShape;
+    function makeEyeGroup(){
+      var iris = two.makeCircle(0, 0, iris_size);
+      var pupil = two.makeCircle(0, 0, iris_size * pupil_scale);
+      var eyeShine = two.makeCircle( - iris_size*pupil_scale/2 ,  - iris_size*pupil_scale/1.6, iris_size * pupil_scale / 3);
+
+
+      iris.fill = iris_color
+      iris.stroke = 'None'
+      pupil.fill = 'black'
+
+      return two.makeGroup(iris,pupil,eyeShine)
     }
 
-    var x_adj = (separation)*(size/camera_depth);
-    var y_adj = height * (size/camera_depth);
+    var x_adj = two.width/2// (separation)//*(size/camera_depth);
+    var y_adj = two.height/2//height //* (size/camera_depth);
 
-     reye = new facePart("reye", -(separation/2)-x_adj, y_adj, -size);
-     addSphere(reye.threedee, size, white_color,0 , 0, 0, 0, 0, 0, 1 );
-     addShape(reye.threedee,circleShape, iris_color, 0, 0, size, 0, 0, 0, 1 );
-     addShape(reye.threedee,pupilShape, 0x000000, 0, 0, size, 0, 0, 0, pupil_scale );
-     reye.idle_size = reye.size()
-    
-     leye = new facePart("leye", (separation/2)+x_adj, y_adj, -size);
-     addSphere(leye.threedee, size, white_color, 0, 0, 0, 0, 0, 0, 1 );
-     addShape(leye.threedee,circleShape, iris_color, 0, 0, size, 0, 0, 0, 1 );
-     addShape(leye.threedee,pupilShape, 0x000000, 0, 0, size, 0, 0, 0, pupil_scale );
-     leye.idle_size = leye.size()
+  reyewhite = two.makeCircle(x_adj + separation/2, y_adj-height, size);
+  reyewhite.fill = white_color
+  reyewhite.stroke = 'None'
+
+  reye = new facePart("reye", makeEyeGroup(), x_adj + separation/2, y_adj-height)//-(separation/2)-x_adj, y_adj);
+  reye.separation = separation
+  reye.size = size
+
+
+  leyewhite = two.makeCircle(x_adj - separation/2, y_adj-height, size);
+  leyewhite.fill = white_color
+  leyewhite.stroke = 'None'
+
+  leye = new facePart("leye", makeEyeGroup(), x_adj - separation/2, y_adj-height);
+  leye.separation = separation
+  leye.size = size
 }
 
+/*
+Adds the lid objects. These are actually very large rectangles with a "U" cutout.
+Blinking moves them in the y direction.
+*/
+function addLids(color, width, height, arch){
+  //make the shape for an upper lid (basically a big rectunguloid with a u-shaped cutout)
+    function makeUpperLidGroup(){
+      var curve = two.makeCurve(-1.1*width, -2*width, -1.1*width, -1*width,-1.1*width, 0,-1.1*width, width, -width,width,      -width/2, width/2, width/2, width/2,     width, width, 1.1*width, width,1.1*width, 0, 1.1*width, -1*width, 1.1*width, -2*width)
+      curve.fill = background_color
+      curve.stroke = 'None'
+      return two.makeGroup(curve)
+    }
 
-function addMouth(color, x, y, width, height, thickness, opening, width_scale, ulip_h_scale, llip_h_scale){
+    var leye = getPart("leye");
+    var reye = getPart("reye");
 
-    var arcShape = new THREE.Shape();
+    var xl = leye.group.translation.x
+    var xr = reye.group.translation.x
 
-    arcShape.absarc( 0, width, width, 0, -3.23, true );
-    arcShape.absarc( 0, width, width, -.15, -3.23, false );
+    var y = reye.group.translation.y - height //+ (camera_depth*leye.threedee.position.y/(camera_depth-leye.threedee.position.z));
 
-    llip = new facePart("llip", x,y-(height-width));
-    addLine(llip.threedee, arcShape, color, thickness, 0,0,0,0,0,.11,1);
+    ullid = new facePart("ullid", makeUpperLidGroup(), xl,y)
 
-    ulip = new facePart("ulip", x,y);
-    addLine(ulip.threedee, arcShape, color, thickness, 0,0,0,0,0,.11,1);
+    urlid = new facePart("urlid",makeUpperLidGroup(), xr,y)
 
-    mouth_fix = llip.idle_pos.y + (ulip.idle_pos.y-llip.idle_pos.y)/2;
+    //make the shapes for the lower lid (same as upper lid, but in reverse, and with two rectangles to stop sharp corners)
+    function makeLowerLidGroup(){
+      var curve = two.makeCurve(1.1*width, 2*width, 1.1*width, 1*width,1.1*width, 0,1.1*width, -width, width,-width,    width/2, -width/2, -width/2, -width/2,      -width, -width, -1.1*width, -width,-1.1*width, 0, -1.1*width, 1*width, -1.1*width, 2*width)
+      var rect = two.makeRectangle(-0.9*width,-width, width/3, 2*width)
+      var rect2 = two.makeRectangle(0.9*width,-width, width/3, 2*width)
+      rect.fill = background_color
+      rect2.fill = background_color
+      curve.fill = background_color
+      curve.stroke = 'None'
+      rect.stroke = 'None'
+      rect2.stroke = 'None'
+      return two.makeGroup(rect, rect2, curve)
+    }
 
-    ulip.idle_scale.x = width_scale;
-    llip.idle_scale.x = width_scale;
-    ulip.idle_scale.y = ulip_h_scale;
-    llip.idle_scale.y = llip_h_scale;
+    y = reye.group.translation.y + height
 
-    ulip.idle_pos.y = mouth_fix+opening/2;
-    llip.idle_pos.y = mouth_fix-opening/2;
+    lllid = new facePart("lllid", makeLowerLidGroup(), xl,y)
 
-    ulip.idle_size.x = width_scale*ulip.size().x;
-    ulip.idle_size.y = ulip_h_scale*ulip.size().y;
-    llip.idle_size.x = width_scale*llip.size().x;
-    llip.idle_size.y = llip_h_scale*llip.size().y;
-
+    lrlid = new facePart("lrlid",makeLowerLidGroup(), xr,y)
 }
 
-
+/*
+Initializes the nose object. Its shape is an upside down triangle of size width and height
+*/
 function addNose(color, x, y, width, height){
     var xc = width/2;
     var yc = height/2
 
-    var triangleShape = new THREE.Shape();
-    triangleShape.moveTo(  -xc, yc );
-    triangleShape.lineTo(  xc, yc );
-    triangleShape.lineTo( 0, -yc );
-    triangleShape.lineTo(  -xc, yc );
+    function makeNoseGroup(){
+      var triangle = two.makePath(-xc,yc , xc,yc , 0,-yc , -xc,yc)
+      triangle.fill = color
+      triangle.stroke = 'None'
+      return two.makeGroup(triangle)
+    }
 
-    nose = new facePart("nose", x, y);
-    addShape(nose.threedee, triangleShape, color, 0,0,0,0,0,0,1);
-    nose.idle_size = nose.size();
+    nose = new facePart("nose", makeNoseGroup(), windowHalfX + x, windowHalfY - y);
+
 }
 
-function addLids(color, width, height, arch){
-    var arcShape = new THREE.Shape();
+/*
+Adds both brow objects. The brows are controlled by three points and taper at the ends
+TODO: add a parameter for the height of the brow arch
+*/
+function addBrows(color, width, height, thickness, innerSize){
 
-    arcShape.moveTo( -width,-width*10);
-    arcShape.moveTo( -2*width,-width*10);
-    arcShape.moveTo( -2*width, width*10);
-    arcShape.moveTo( 2*width, width*10);
-    arcShape.moveTo( 2*width, -width*10);
-    arcShape.moveTo( width, -width*10);
+    function makeBrowGroup(side){
+      var sign = side == 'left' ? 1 : -1
+      var browCurve = two.makeCurve( sign*width,0, sign*width/8,-0.75*thickness , -sign*width, thickness, true)
+      browCurve.fill = 'None'
+      browCurve.linewidth = thickness
+      browCurve.stroke = color
+      browCurve.cap = 'round'
+      return two.makeGroup(browCurve)
+    }
+    function getIdleCoords(side){
+      var sign = side == 'left' ? 1 : -1
+      return {x2:-sign*width,y2:thickness , x1:sign*width/8,y1:-0.75*thickness , x0:sign*width, y0:0}
+    }
 
-    arcShape.absarc( 0, 0, width, 0, 3.23, true );
-    //arcShape.absarc( 0, 0, width, -.15, 3.23, false );
+    function interpolateBrows(goal, t){
+      TWEEN.remove(this.currentControlPoint);
+      var goal = goal;
+      var target = this.currentControlPoint;
+      var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
+      tween.easing(TWEEN.Easing.Quadratic.InOut);
+      var browInfo = this.group.children[0]
+      tween.onUpdate(function() {
+
+            browInfo.vertices[0].x = this.x0
+            browInfo.vertices[0].y = this.y0
+
+            browInfo.vertices[1].x = this.x1
+            browInfo.vertices[1].y = this.y1
+
+            browInfo.vertices[2].x = this.x2
+            browInfo.vertices[2].y = this.y2
+      });
+      tween.start();
+    }
 
     var leye = getPart("leye");
     var reye = getPart("reye");
 
-    //var xl = (camera_depth)*leye.threedee.position.x/((camera_depth)-leye.threedee.position.z);
-    //var xr = camera_depth*reye.threedee.position.x/(camera_depth-reye.threedee.position.z);
+    var xl = leye.group.translation.x
+    var xr = reye.group.translation.x
 
-    var xl = leye.threedee.position.x
-    var xr = reye.threedee.position.x
+    var y = reye.group.translation.y - height
 
-    var y = height //+ (camera_depth*leye.threedee.position.y/(camera_depth-leye.threedee.position.z));
+    lbrow = new facePart("lbrow", makeBrowGroup('left'), xl, y)
+    lbrow.idleControlPoint = getIdleCoords('left')
+    lbrow.currentControlPoint = getIdleCoords('left')
+    lbrow.interpolateBrows = interpolateBrows
 
-    ullid = new facePart("ullid", xl,y)
-    addShape(ullid.threedee, arcShape, color,0,0,0,0,0,0,1);
-
-    urlid = new facePart("urlid", xr,y)
-    addShape(urlid.threedee, arcShape, color, 0,0,0,0,0,0,1);
-
-    ullid.scale({y:arch}, 1);
-    urlid.scale({y:arch}, 1);
-
-    arcShape = new THREE.Shape();
-
-    arcShape.moveTo( -width,width*10);
-    arcShape.moveTo( -2*width,width*10);
-    arcShape.moveTo( -2*width, -width*10);
-    arcShape.moveTo( 2*width, -width*10);
-    arcShape.moveTo( 2*width, width*10);
-    arcShape.moveTo( width, width*10);
-
-    arcShape.absarc( 0, 0, width, 0, -3.23, true );
-
-    y = y - 2*height;
-
-    lllid = new facePart("lllid", xl,y)
-    addShape(lllid.threedee, arcShape, color,0,0,0,0,0,0,1);
-
-    lrlid = new facePart("lrlid", xr,y)
-    addShape(lrlid.threedee, arcShape, color, 0,0,0,0,0,0,1);
-
-    lllid.scale({y:arch}, 1);
-    lrlid.scale({y:arch}, 1);
-
-    //lid_width = width;
-    ullid.idle_scale.y = arch;
-    urlid.idle_scale.y = arch;
-    lllid.idle_scale.y = arch;
-    lrlid.idle_scale.y = arch;
-
-    ullid.idle_size = ullid.size();
-    urlid.idle_size = urlid.size();
-    lllid.idle_size = lllid.size();
-    lrlid.idle_size = lrlid.size();
+    rbrow = new facePart("rbrow", makeBrowGroup('right'), xr, y);
+    rbrow.idleControlPoint = getIdleCoords('right')
+    rbrow.currentControlPoint = getIdleCoords('right')
+    rbrow.interpolateBrows = interpolateBrows
 }
 
+/*
+Initializes the mouth object, which consists of two lip objects.
+The lip objects each consist of 4 control points: two mouth corners and two intermediate control points.
+The lips share the same lip corners
+*/
+function addMouth(color, x, y, width, height, thickness, opening, dimple_size, ulip_h_scale, llip_h_scale){
 
-function addBrows(color, width, height, thickness, arch){
+    function makeLipGroup(){
+      var lipCurve = two.makeCurve(width/2,0 , width/8,height , -width/8,height , -width/2,0 , true)
+      lipCurve.fill = 'None'
+      lipCurve.linewidth = thickness
+      lipCurve.stroke = color
+      lipCurve.cap = 'round'
+      return two.makeGroup(lipCurve)
+    }
 
-      //original arc eyebrow
-        var arcShape = new THREE.Shape();
+    function interpolateLips(goal, t){
+      TWEEN.remove(this.currentControlPoint);
 
-    arcShape.absarc( 0, 0, width, -.15, 3.23, false );
-        arcShape.absarc( 0, 0, width, 0, 3.23, true );
+      var goal = goal;
+      var target = this.currentControlPoint;
+      var tween = new TWEEN.Tween(target, {override:true}).to(goal,t);
+      tween.easing(TWEEN.Easing.Quadratic.InOut);
+      var mouthInfo = this.group.children[0]
+      tween.onUpdate(function() {
+            mouthInfo.vertices[0].x = this.x0
+            mouthInfo.vertices[0].y = this.y0
 
-        //left eyebrow shape
-        var leftBrowShape = new THREE.Shape();
-        var upperPoints = [new THREE.Vector2(0, 140), new THREE.Vector2(width+45, 30)];
-        var lowerPoints = [new THREE.Vector2(0, 80), new THREE.Vector2(-width,0)];
+            mouthInfo.vertices[1].x = this.x1
+            mouthInfo.vertices[1].y = this.y1
 
-        leftBrowShape.moveTo(-width-20,0);
-        leftBrowShape.quadraticCurveTo(-width-30, 0, -width-45, 60);
-        leftBrowShape.splineThru(upperPoints);
-        leftBrowShape.quadraticCurveTo(width+50, 20, width+45, 10);
-        leftBrowShape.splineThru(lowerPoints);
+            mouthInfo.vertices[2].x = this.x2
+            mouthInfo.vertices[2].y = this.y2
 
-        //right eyebrow shape
-        var rightBrowShape = new THREE.Shape();
-        var upperPoints = [new THREE.Vector2(0, 140), new THREE.Vector2(-width-45, 30)];
-        var lowerPoints = [new THREE.Vector2(0, 80), new THREE.Vector2(width,0)];
+            mouthInfo.vertices[3].x = this.x3
+            mouthInfo.vertices[3].y = this.y3
+      });
+      tween.start();
+    }
 
-        rightBrowShape.moveTo(width+10,0);
-        rightBrowShape.quadraticCurveTo(width+30, 0, width+45, 60);
-        rightBrowShape.splineThru(upperPoints);
-        rightBrowShape.quadraticCurveTo(-width-50, 20, -width-45, 10);
-        rightBrowShape.splineThru(lowerPoints);
+    llip = new facePart('llip', makeLipGroup(), windowHalfX + x, windowHalfY - y)
+    llip.idleControlPoint = {x0:width/2,y0:0 , x1:width/5,y1:height , x2:-width/5,y2:height , x3:-width/2,y3:0}
+    llip.currentControlPoint = {x0:width/2,y0:0 , x1:width/5,y1:height , x2:-width/5,y2:height , x3:-width/2,y3:0}
+    llip.interpolateLips = interpolateLips
 
-
-    var leye = getPart("leye");
-    var reye = getPart("reye");
-
-    //var xl = camera_depth*leye.threedee.position.x/(camera_depth-leye.threedee.position.z);
-    //var xr = camera_depth*reye.threedee.position.x/(camera_depth-reye.threedee.position.z);
-    var xl = leye.threedee.position.x
-    var xr = reye.threedee.position.x
-
-    var y = height //+ (camera_depth*leye.threedee.position.y/(camera_depth-leye.threedee.position.z));
-
-        lbrow = new facePart("lbrow", xl,y)
-    addLine(lbrow.threedee, arcShape, color, thickness, 0,0,0,0,0,.11,1);
-
-    rbrow = new facePart("rbrow", xr,y)
-        addLine(rbrow.threedee, arcShape, color, thickness, 0,0,0,0,0,.11,1);
-
-    lbrow.scale({y:arch}, 1);
-    rbrow.scale({y:arch}, 1);
-
-    lbrow.idle_scale.y = arch;
-    rbrow.idle_scale.y = arch;
-
-    lbrow.idle_size = lbrow.size();
-    rbrow.idle_size = rbrow.size();
+    ulip = new facePart('ulip', makeLipGroup(), windowHalfX + x, windowHalfY - y)
+    ulip.idleControlPoint = {x0:width/2,y0:0 , x1:width/5,y1:height , x2:-width/5,y2:height , x3:-width/2,y3:0}
+    ulip.currentControlPoint = {x0:width/2,y0:0 , x1:width/5,y1:height , x2:-width/5,y2:height , x3:-width/2,y3:0}
+    ulip.interpolateLips = interpolateLips
 
 }
 
-function addLine(threedee, shape, color, width,  x, y, z, rx, ry, rz, s) {
-    var geometry = shape.createPointsGeometry();
-    var material = new THREE.LineBasicMaterial( { linewidth:width, color: color, transparent: true } );
+/*
+returns the part from the list of parts in the scene based on name.
+*/
+function getPart(name){
+    for(i in parts){
+  if(parts[i].name==name){
+      return parts[i];
+  }
+    }
+    return null;
+}
 
-    var line = new THREE.Line( geometry, material);
-    line.position.set( x, y, z );
-    line.rotation.set( rx, ry, rz );
-    line.scale.set( s, s, s );
-    threedee.add( line );
+/*
+looks at a given point in the x,y,z space
+x,y,z - floats representing to coordinates of the point to look at
+t - float representing time to move to the location
+*/
+function lookat(x,y,z,t){
+    //console.log("Looking at: " + x + "," + y + "," + z)
+
+    var leye = getPart("leye")
+
+    var ygoal = leye.idle_pos.y - (y * leye.size) / z
+    var xoffset = (leye.size*(leye.separation/2 + x))/(Math.sqrt(Math.pow(z,2) + Math.pow(leye.separation/2 + x,2)))
+    var xgoal = leye.idle_pos.x + xoffset
+
+
+    leye.pos({x: xgoal, y:ygoal}, t);
+
+    var reye = getPart("reye")
+
+    xoffset = (reye.size*(reye.separation/2 - x))/(Math.sqrt(Math.pow(z,2) + Math.pow(reye.separation/2 - x,2)))
+    xgoal = reye.idle_pos.x - xoffset
+    //ygoal is same for both eyes
+
+    reye.pos({x: xgoal, y:ygoal}, t);
+}
+
+// for looking at things IRL; use avg velocity rather than time
+// velocity is in radians/sec
+function lookat_real_world(realx,realy,realz,vel){
+    x = realx/cm_per_px;
+    y = realy/cm_per_px;
+    z = realz/cm_per_px;
+
+
+    var leye = getPart("leye")
+
+    var ygoal = leye.idle_pos.y - (y * leye.size) / z
+    var lxoffset = (leye.size*(leye.separation/2 + x))/(Math.sqrt(Math.pow(z,2) + Math.pow(leye.separation/2 + x,2)))
+    var lxgoal = leye.idle_pos.x + lxoffset
+
+
+
+
+    var reye = getPart("reye")
+
+    var rxoffset = (reye.size*(reye.separation/2 - x))/(Math.sqrt(Math.pow(z,2) + Math.pow(reye.separation/2 - x,2)))
+    var rxgoal = reye.idle_pos.x - rxoffset
+    //ygoal is same for both eyes
+    var t = Math.max(Math.abs(rxoffset/vel), Math.abs(lxoffset/vel), Math.abs((y * leye.size) / z))
+
+    leye.pos({x: lxgoal, y:ygoal}, t);
+    reye.pos({x: rxgoal, y:ygoal}, t);
 }
 
 
-function addShape( threedee, shape, color, x, y, z, rx, ry, rz, s ) {
-    // flat shape
-    var geometry = new THREE.ShapeGeometry( shape );
-    var material = new THREE.MeshBasicMaterial( { color: color, overdraw: 0.5 } );
-
-    var mesh = new THREE.Mesh( geometry, material );
-    mesh.position.set( x, y, z );
-    mesh.rotation.set( rx, ry, rz );
-    mesh.scale.set( s, s, s );
-    threedee.add( mesh );
-
-    // line
-    // addLine(threedee, shape, 0x333333, 5, x, y, z, rx, ry, rz, s);
-}
-
-function addSphere( threedee, radius, color, x, y, z, rx, ry, rz, s ) {
-    var geometry = new THREE.SphereGeometry( radius , 15, 15);
-    var material = new THREE.MeshBasicMaterial( { color: color, overdraw: 0.5 } );
-    var mesh = new THREE.Mesh( geometry, material );
-    mesh.position.set( x, y, z );
-    mesh.rotation.set( rx, ry, rz );
-    mesh.scale.set( s, s, s );
-    threedee.add( mesh );
-}
-
-/**
-
-   Moving the face
-
-**/
-
-function get_goal(message) {
-    if(message.visemes.length!=0){
-    console.log('Message received: visemes: ' + message.visemes);
-    stop_visemes()
-    play_visemes(message.visemes, message.viseme_ms, message.times, message.start)
-    }
-    if(message.aus.length!=0){
-    console.log('Message received: aus: ' + message.aus + " degrees: " + message.au_degrees + " side: " + message.side)
-    side = "b"
-    if(message.side == 1){
-        side = 'r'
-    }
-    if(message.side == 2){
-        side = 'l'
-    }
-    for(a in message.aus){
-        this_au = parseInt(message.aus[a])
-        if(message.au_ms[a]<0){
-        console.log("Time cannot be less than zero!")
-        } else {
-        if(this_au == 1 ||this_au == 4||this_au==2||this_au==5 || this_au == 7 || this_au == 43){
-            au(this_au, message.au_degrees[a], side)
-        }
-        else {
-            au(this_au, message.au_degrees[a], "b")
-        }
-        }
-    }
-    move_face(message.au_ms)
-    }
-    if(message.hold_gaze==1){
-    looking = true
-    }
-    if(message.hold_gaze==2){
-    looking = false
-    }
-    if(message.retarget_gaze){
-    console.log("Message received: gaze: " + message.gaze_target.x + "," + message.gaze_target.y + "," +  message.gaze_target.z)
-    x = message.gaze_target.x
-    y = message.gaze_target.y
-    z = message.gaze_target.z
-    gaze_vel = message.gaze_vel
-    if(gaze_vel > 0){
-        lookat_real_world(x, y, z, gaze_vel)
-    }
-    else {
-        lookat_real_world(x, y, z, 1.7) //1.7 rad/s is an average human eye saccade speed
-    }
-    }
-}
-
-
+/*
+function to perform idle animation, which consists of looking around the room at random
+*/
 function doIdle(){
 
     var d = new Date();
     var now = d.getTime();
     if(poked){
-    if(now-poke_end >= 0){
-        zeroFace(poke_time/2)
-        poked=false
-    }
+      if(now-poke_end >= 0){
+          zeroFace(poke_time/2)
+          poked=false
+      }
     }
 
     if(blinking){
-    if(now-blink_end >= 0){
-        au(43, 0)
-        move_face(blink_time/2)
-        blinking=false
-    }
+      if(now-blink_end >= 0){
+          au(43, 0)
+          move_face(blink_time/2)
+          blinking=false
+      }
     }
     if((Math.floor((Math.random() * 500))==0 && now-last_blink > 2000)|| now-last_blink > 8000){
-    blink(300);
-    last_blink = now;
+      console.log('blinky')
+      blink(300);
+      last_blink = now;
     }
 
 
@@ -1176,11 +1095,45 @@ function doIdle(){
     }
 }
 
+
+function blink(t){
+    au(43, 1.0);
+    move_face(t/2)
+    blink_time=t
+
+    d = new Date()
+    blink_end = d.getTime()+t/2;
+    blinking=true
+}
+
+function animate(){
+  // console.log('animating')
+  //print_elapsed()
+  //set_time()
+  //requestAnimationFrame( animate ); //I guess we don't need this in the two paradigm?
+  //set_time()
+  if (typeof gui === "undefined" && new Date().getTime() > lockIdleUntil){
+    doIdle();
+  }
+  //print_elapsed()
+
+  check_and_play_visemes()
+  TWEEN.update();
+
+  //print_elapsed()
+  //set_time()
+}
+
+
+/*
+Puckers the lips, blinks and raises the nose
+*/
 function doPoke(){
     poke_time=600
     au(9,1);
     au(43,1);
     au(18,1);
+    au(2,1)
     move_face(300)
 
     d = new Date()
@@ -1189,22 +1142,17 @@ function doPoke(){
 }
 
 
-
 function onWindowResize() {
+
     //TODO: make this look good
 
     windowHalfX = window.innerWidth / 2;
     windowHalfY = window.innerHeight / 2;
 
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    two.width = window.innerWidth
+    two.height = window.innerHeight
 
 }
-
-//
-
 
 function onDocumentMouseMove( event ) {
 /**
@@ -1230,9 +1178,11 @@ function onDocumentMouseDown( event ) {
 }
 
 function clickOrTouch( x, y) {
-    if (typeof gui === "undefined"){
-        doPoke();
-    }
+  console.log('click')
+  if (typeof gui === "undefined"){
+    //don't do the poke animation if the  gui is up or else dragging the controllers makes the poke happen
+    doPoke();
+  }
     lookat_real_world(0, 0, 60, 1.7);
 }
 
@@ -1257,11 +1207,11 @@ function onDocumentTouchStart( event ) {
 /**
     if ( event.touches.length == 1 ) {
 
-    event.preventDefault();
+  event.preventDefault();
 
-    mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
-    update_goal((event.touches[ 0 ].pageX)/100)
-    targetRotationOnMouseDown = targetRotation;
+  mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
+  update_goal((event.touches[ 0 ].pageX)/100)
+  targetRotationOnMouseDown = targetRotation;
 
     }
 **/
@@ -1276,41 +1226,12 @@ function onDocumentTouchMove( event ) {
 /**
     if ( event.touches.length == 1 ) {
 
-    event.preventDefault();
+  event.preventDefault();
 
-    mouseX = event.touches[ 0 ].pageX - windowHalfX;
-    update_goal((event.touches[ 0 ].pageX)/100)
-    targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
+  mouseX = event.touches[ 0 ].pageX - windowHalfX;
+  update_goal((event.touches[ 0 ].pageX)/100)
+  targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
 
     }
 **/
-}
-
-//
-
-function print_elapsed() {
-    d = new Date();
-    time  = d.getTime()
-    elapsed = time-prev_frame_time;
-    console.log(elapsed)
-}
-
-function set_time(){
-    d = new Date();
-    time  = d.getTime()
-    prev_frame_time=time
-}
-
-function animate() {
-    //print_elapsed()
-    //set_time()
-    requestAnimationFrame( animate );
-    //set_time()
-    doIdle();
-    //print_elapsed()
-    check_and_play_visemes()
-    TWEEN.update();
-    renderer.render( scene, camera );
-    //print_elapsed()
-    //set_time()
 }

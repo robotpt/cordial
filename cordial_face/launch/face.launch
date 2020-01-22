@@ -1,5 +1,6 @@
 <launch>
-	<arg name="name"/>
+	<arg name="name" value="DB1"/>
+
 	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
 	<node name="face_server" pkg="cordial_face" type="face_keyframe_server.py" output="screen" ns="$(arg name)" args="$(arg name)"/>
 </launch>
