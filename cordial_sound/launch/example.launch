@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="cordial_sound" type="example_publisher.py" name="example_publisher" output="screen"/>
+
+    <include file="$(find cordial_sound)/launch/sound.launch" />
+
+</launch>

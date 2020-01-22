@@ -1,0 +1,8 @@
+<launch>
+
+    <rosparam param="wav_header_length">24</rosparam>
+
+    <node pkg="cordial_sound" type="sound_listener.py" name="sound_listener" output="screen"/>
+    <node pkg="cordial_sound" type="wav_file_publisher.py" name="wav_file_publisher" output="screen"/>
+
+</launch>
