@@ -15,6 +15,7 @@ class CordialManager:
             aws_voice_name,
             aws_region_name,
             viseme_play_speed,
+            min_viseme_duration_in_seconds,
             delay_to_publish_visemes_in_seconds,
     ):
 
@@ -30,6 +31,7 @@ class CordialManager:
         )
 
         self._viseme_play_speed = viseme_play_speed
+        self._min_viseme_duration_in_seconds = min_viseme_duration_in_seconds
         self._delay_to_publish_visemes_in_seconds = delay_to_publish_visemes_in_seconds
 
     def _say_callback(self, data):
@@ -39,11 +41,12 @@ class CordialManager:
 
         _, file_path, behavior_schedule = self._aws_client.run(text)
 
-        visemes_schedule = _filter_behaviors_by_type("viseme", behavior_schedule)
-        visemes_to_play = _get_longer_duration_visemes(visemes_schedule)
-
         self._wav_file_publisher.publish(file_path)
-        self._delay_publishing_visemes(visemes_to_play)
+        self._delay_publishing_visemes(
+            behavior_schedule.get_visemes(
+                min_duration_in_seconds=self._min_viseme_duration_in_seconds,
+            )
+        )
 
     def _delay_publishing_visemes(self, visemes_to_play):
 
@@ -65,36 +68,14 @@ class CordialManager:
         )
 
 
-def _filter_behaviors_by_type(desired_type, behavior_schedule):
-    return filter(lambda ele: ele["type"] == desired_type, behavior_schedule)
-
-
-def _get_durations_of_visemes(visemes_schedule, last_element_duration=0.05):
-    out = []
-    for i in range(0, len(visemes_schedule) - 1):
-        out.append(
-            visemes_schedule[i + 1]["start"] - visemes_schedule[i]["start"]
-        )
-    out.append(last_element_duration)
-    return out
-
-
-def _get_longer_duration_visemes(visemes_schedule, min_duration_in_seconds=0.05):
-    out = []
-    durations = _get_durations_of_visemes(visemes_schedule, min_duration_in_seconds)
-    for i in range(len(visemes_schedule)):
-        if durations[i] >= min_duration_in_seconds:
-            out.append(visemes_schedule[i])
-    return out
-
-
 if __name__ == '__main__':
 
     manager = CordialManager(
-        aws_voice_name=rospy.get_param('voice', 'Ivy'),
-        aws_region_name=rospy.get_param('region', 'us-west-1'),
-        viseme_play_speed=rospy.get_param('viseme_play_speed', 10),
-        delay_to_publish_visemes_in_seconds=rospy.get_param('delay_to_publish_visemes_in_seconds', 0.1),
+        aws_voice_name=rospy.get_param('speech/aws/voice_name', 'Ivy'),
+        aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
+        viseme_play_speed=rospy.get_param('speech/viseme/play_speed', 10),
+        min_viseme_duration_in_seconds=rospy.get_param('speech/viseme/min_duration_in_seconds', 0.05),
+        delay_to_publish_visemes_in_seconds=rospy.get_param('speech/viseme/publish_delay_in_seconds', 0.1),
     )
 
     rospy.spin()

@@ -11,6 +11,8 @@ from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 from contextlib import closing
 
+from behavior_schedule import BehaviorSchedule
+
 
 VISEMES_TRANSLATION = {
     "p": "BILABIAL",
@@ -104,7 +106,7 @@ class AwsPollyClient:
 
     def get_schedule_for_behaviors(self, text):
         """
-        function used to generate viseme and expression time behavior_schedule.
+        function used to generate viseme and expression time behavior_timing.
         input - line of text to be processed with polly
         """
 
@@ -156,12 +158,12 @@ class AwsPollyClient:
 
         # find the times to play beginnings of words, so the actions can be spliced in.
         word_times = filter(lambda l: l["type"] == "word", x_sheet)
-        # behavior_schedule will be the list of visemes and actions in order by time
-        # behavior_schedule will collect also information about word timing
-        behavior_schedule = []
+        # behavior_timing will be the list of visemes and actions in order by time
+        # behavior_timing will collect also information about word timing
+        behavior_timing = []
         chars_before_phrase_content = 30
         for w in word_times:
-            behavior_schedule.append(
+            behavior_timing.append(
                 {
                     "start": float(w["time"]) / 1000.,  # convert ms to seconds
                     "char_start": w["start"]-chars_before_phrase_content,
@@ -180,10 +182,10 @@ class AwsPollyClient:
                 else:
                     a[0] = (word_times[a[0]]["time"]) / 1000.  # convert ms to seconds
 
-        # behavior_schedule will contain also the information about the timing of the words
+        # behavior_timing will contain also the information about the timing of the words
         for a in actions:
             args = a[2]
-            behavior_schedule.append(
+            behavior_timing.append(
                 {
                     "start": float(a[0])+.01,  # prevent visemes and actions from being at exactly the same time
                     "type": "action",
@@ -201,7 +203,7 @@ class AwsPollyClient:
             filter(lambda l: l["type"] == "viseme", x_sheet)
         )
         for v in visemes:
-            behavior_schedule.append(
+            behavior_timing.append(
                 {
                     "start": float(v[0]) / 1000.,  # convert ms to seconds
                     "type": "viseme",
@@ -209,7 +211,9 @@ class AwsPollyClient:
                 }
             )
 
-        return sorted(behavior_schedule, key=lambda index: index['start'])
+        return BehaviorSchedule(
+            sorted(behavior_timing, key=lambda index: index['start'])
+        )
 
     @staticmethod
     def get_text_without_actions(text):
@@ -243,11 +247,10 @@ class AwsPollyClient:
 
 if __name__ == '__main__':
 
-    text_to_say = "Does this all work?"
+    text_to_say = "Hi*nod*, there."
 
     client = AwsPollyClient()
     text, wav_file, behaviors = client.run(text_to_say)
 
-    print behaviors
-    print wav_file
+    print(wav_file)
     os.system("aplay " + wav_file)
