@@ -13,13 +13,14 @@ def play_sound(data):
 
     p = pyaudio.PyAudio()
 
-    chunk_size = 512
     stream = p.open(
         format=data.format,
         channels=data.num_channels,
         rate=data.framerate,
         output=True,
-        frames_per_buffer=chunk_size,
+        frames_per_buffer=rospy.get_param(
+            'frames_per_buffer', default=512
+        ),
     )
     stream.write(data.data)
     time.sleep(1)
