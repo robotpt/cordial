@@ -1,86 +1,81 @@
 #!/usr/bin/env python
 
 import rospy
-import sys
-from lex_common_msgs.srv import *
+import threading
+
 from std_msgs.msg import String
-from std_msgs.msg import Bool
-from audio_common_msgs.msg import AudioData
-from qt_robot_speaker.msg import PlayRequest
-from qt_robot_gestures.msg import Gesture
-
-class InteractionManager():
-	
-	def __init__(self, pi, nuc):
-		"""
-		Subscriber: topic names are chosen according to where the message comes from (nuc or pi).
-		Publisher: topic names are chosen according to where the message is addressed (nuc or pi).
-		"""
-		self.pi_topic = pi
-		self.nuc_topic = nuc
-		rospy.init_node("manager_node", anonymous=True)
-		rospy.Subscriber(self.pi_topic+"/gestures/list", String, self.handle_gestures_list)
-		rospy.Subscriber(self.pi_topic+"/microphone_input", AudioData, self.handle_microphone_input)
-		rospy.Subscriber(self.pi_topic+"/state", String, self.handle_state)
-		rospy.Subscriber(self.nuc_topic+"/text_output", String, self.handle_text_output)
-		rospy.Subscriber(self.nuc_topic+"/gestures", Gesture, self.handle_gestures)
-		rospy.Subscriber(self.nuc_topic+"/behavior", String, self.handle_behavior)
-		rospy.Subscriber(self.nuc_topic+"/face", String, self.handle_face)
-		rospy.Subscriber(self.nuc_topic+"/speaker_output/play", PlayRequest, self.handle_speaker_play)
-		rospy.Subscriber(self.pi_topic+"/speaker_state", Bool, self.handle_speaker_state)
-		self.qt_gesture_list_pub = rospy.Publisher(self.nuc_topic+"/gestures/list", String, queue_size = 5)
-		self.gestures_pub = rospy.Publisher(self.pi_topic+"/gestures", Gesture, queue_size=1)
-		self.microphone_input_pub = rospy.Publisher(self.nuc_topic+"/microphone_input", AudioData, queue_size = 5)
-		self.speaker_output = rospy.Publisher(self.pi_topic+"/speaker_output/play", PlayRequest, queue_size = 5)
-		self.state_pub = rospy.Publisher(self.nuc_topic+"/state", String, queue_size = 10)
-		self.speaker_state_pub = rospy.Publisher(self.nuc_topic+"/speaker_state", Bool, queue_size = 10)
-		self.text_output_pub = rospy.Publisher(self.nuc_topic+"/tts/text_output", String, queue_size = 10)
-		self.behavior_pub = rospy.Publisher(self.pi_topic+"/behavior", String, queue_size = 10)
-		self.face_pub = rospy.Publisher(self.pi_topic+"/face", String, queue_size = 10)
-		rospy.spin()
-
-	def handle_gestures_list(self, req):
-		self.qt_gesture_list_pub.publish(req.data)
-		return
+from aws_polly_client import AwsPollyClient
+from cordial_face.msg import FaceRequest
 
 
-	def handle_gestures(self, req):
-		self.gestures_pub.publish(req.gesture_timing, req.gesture_name)
-		return
+class CordialManager:
+
+    def __init__(
+            self,
+            aws_voice_name,
+            aws_region_name,
+            viseme_play_speed,
+            min_viseme_duration_in_seconds,
+            delay_to_publish_visemes_in_seconds,
+    ):
+
+        rospy.init_node('manager')
+        rospy.Subscriber('/cordial/say', String, self._say_callback)
+        self._wav_file_publisher = rospy.Publisher('/sound/from_file/wav', String, queue_size=1)
+        self._behavior_publisher = rospy.Publisher('/cordial/behaviors', String, queue_size=1)
+        self._face_publisher = rospy.Publisher('/cordial/face', FaceRequest, queue_size=1)
+
+        self._aws_client = AwsPollyClient(
+            voice=aws_voice_name,
+            region=aws_region_name,
+        )
+
+        self._viseme_play_speed = viseme_play_speed
+        self._min_viseme_duration_in_seconds = min_viseme_duration_in_seconds
+        self._delay_to_publish_visemes_in_seconds = delay_to_publish_visemes_in_seconds
+
+    def _say_callback(self, data):
+        self.say(data.data)
+
+    def say(self, text):
+
+        _, file_path, behavior_schedule = self._aws_client.run(text)
+
+        self._wav_file_publisher.publish(file_path)
+        self._delay_publishing_visemes(
+            behavior_schedule.get_visemes(
+                min_duration_in_seconds=self._min_viseme_duration_in_seconds,
+            )
+        )
+
+    def _delay_publishing_visemes(self, visemes_to_play):
+
+        def publish_visemes_callback_fn():
+            self._face_publisher.publish(
+                self._get_visemes_message(visemes_to_play)
+            )
+
+        threading.Timer(
+            self._delay_to_publish_visemes_in_seconds,
+            publish_visemes_callback_fn,
+        ).start()
+
+    def _get_visemes_message(self, visemes_to_play):
+        return FaceRequest(
+            visemes=map(lambda b: b["id"], visemes_to_play),
+            times=map(lambda b: b["start"], visemes_to_play),
+            viseme_ms=self._viseme_play_speed,
+        )
 
 
-	def handle_microphone_input(self, req):
-		self.microphone_input_pub.publish(req.data)
-		return
-
-	def handle_speaker_play(self, req):
-	    print(req.audio_frame)
-	    self.speaker_output.publish(req.audio_frame, req.data)
-	    return
-	
-	def handle_speaker_state(self, req):
-	    self.speaker_state_pub.publish(req.data)
-	    return
-
-	
-	def handle_state(self, req):
-		self.state_pub.publish(req.data)
-		return
-
-	def handle_text_output(self, req):
-		self.text_output_pub.publish(req.data)
-		return
-
-	def handle_behavior(self, req):
-		self.behavior_pub.publish(req.data)
-		return
-
-	def handle_face(self, req):
-		self.face_pub.publish(req.data)
-		return
-	
 if __name__ == '__main__':
-	pi =  "qt_robot"
-	nuc = "qtpc"
-    	InteractionManager(pi, nuc)
 
+    manager = CordialManager(
+        aws_voice_name=rospy.get_param('speech/aws/voice_name', 'Ivy'),
+        aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
+        viseme_play_speed=rospy.get_param('speech/viseme/play_speed', 10),
+        min_viseme_duration_in_seconds=rospy.get_param('speech/viseme/min_duration_in_seconds', 0.05),
+        delay_to_publish_visemes_in_seconds=rospy.get_param('speech/viseme/publish_delay_in_seconds', 0.1),
+    )
+
+    rospy.spin()

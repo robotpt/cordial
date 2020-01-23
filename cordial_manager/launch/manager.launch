@@ -1,16 +1,14 @@
-<!-- This is an example launch file for how a ROS application could use a cordial_behavior -->
 <launch>
-	
-   	<arg name="robot_name" default="DB1"/>
-	<arg name="use_manager" default="true"/>
-  	<group if="$(arg use_manager)">
-    	<node pkg="cordial_manager" type="manager.py" name="manager" output="screen"/>
-		<include file="$(find cordial_lex)/launch/lex_demo.launch" />
-		<include file="$(find cordial_behavior)/launch/behaviors.launch" />
-		<include file="$(find cordial_tts)/launch/tts.launch" />
-		<include file="$(find cordial_face)/launch/face_client.launch">
-  		</include>
-  	</group>
 
+    <param name="speech/aws/voice_name" type="str" value="Ivy"/>
+    <param name="aws/region_name" type="str" value="us-west-1"/>
+    <param name="speech/viseme/play_speed" type="double" value="10"/>
+    <param name="speech/viseme/min_duration_in_seconds" type="double" value="0.05"/>
+    <param name="speech/viseme/publish_delay_in_seconds" type="double" value="0.1"/>
+
+    <node pkg="cordial_manager" type="manager.py" name="manager" output="screen"/>
+
+    <include file="$(find cordial_sound)/launch/sound.launch" />
+    <include file="$(find cordial_face)/launch/face.launch" />
 
 </launch>

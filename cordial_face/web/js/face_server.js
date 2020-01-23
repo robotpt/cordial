@@ -1,21 +1,3 @@
-//------------------------------------------------------------------------------
-// Face for SPRITE robot (to be run on mobile phone)
-// Copyright (C) 2017 Elaine Schaertl Short
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//------------------------------------------------------------------------------
-
 var listener,ros, latency_listener, latency_publisher, two;
 var container, stats;
 
@@ -65,7 +47,8 @@ This is the first function that is called by the HTML Script.
 It is responsible for the creation of all the face parts, and defines color, sizes, orientations, etc.
 **See kiwi.html or chili.html for types of the input arguments.**
 */
-function startFace(bkgd_color,
+function startFace(
+       bkgd_color,
        robot_name,
        ros_uri,
        cm_per_pixel,
@@ -100,7 +83,7 @@ function startFace(bkgd_color,
        brow_width,
        brow_height,
        brow_thickness,
-       brow_innersize){
+       brow_innersize) {
 
           d = new Date();
           startup_time = d.getTime()
@@ -141,7 +124,7 @@ function startFace(bkgd_color,
             eye_iris_size,
             eye_pupil_scale,
             eye_pupil_shape);
-          //
+
           // addLids(color, width, height, arch)
           addLids(background_color,
             eyelid_width,

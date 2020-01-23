@@ -1,8 +1,0 @@
-<launch>
-  <arg name="robot_name" value="DB1"/>
-
- <include file="$(find cordial_face)/launch/face.launch">
-      <arg name="name" value="$(arg robot_name)"/>
-  </include>
-
-</launch>
