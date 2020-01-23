@@ -123,7 +123,7 @@ class AwsPollyClient:
             if re.match("\*.*\*", w):
                 args = w.strip("*").split()
                 name = args.pop(0)
-                actions.append([i,name,args])
+                actions.append([i, name, args])
             else:
                 i += 1
 
@@ -172,11 +172,13 @@ class AwsPollyClient:
             )
 
         # assign the actions the correct time based on when they appear in the script
-        for a in actions:
-            if a[0] > len(word_times)-1:
-                a[0] = x_sheet[-1]["time"] / 1000.  # convert ms to seconds
-            else:
-                a[0] = (word_times[a[0]]["time"]) / 1000.  # convert ms to seconds
+        # only if there are words in the timing - otherwise this is skipped
+        if len(x_sheet) > 0:
+            for a in actions:
+                if a[0] > len(word_times)-1:
+                    a[0] = x_sheet[-1]["time"] / 1000.  # convert ms to seconds
+                else:
+                    a[0] = (word_times[a[0]]["time"]) / 1000.  # convert ms to seconds
 
         # behavior_schedule will contain also the information about the timing of the words
         for a in actions:
@@ -241,10 +243,10 @@ class AwsPollyClient:
 
 if __name__ == '__main__':
 
-    text_to_say = "Hi there, love"
+    text_to_say = "Does this all work?"
 
     client = AwsPollyClient()
-    wav_file, behaviors = client.run(text_to_say)
+    text, wav_file, behaviors = client.run(text_to_say)
 
     print behaviors
     print wav_file
