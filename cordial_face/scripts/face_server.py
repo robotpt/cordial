@@ -7,7 +7,7 @@ import threading
 from geometry_msgs.msg import Point
 
 
-class FaceClient:
+class FaceServer:
 
     def __init__(self):
 
@@ -78,5 +78,5 @@ class FaceClient:
 
 if __name__ == '__main__':
 
-    FaceClient()
+    FaceServer()
     rospy.spin()
