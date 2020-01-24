@@ -19,7 +19,7 @@ def play_sound(data):
         rate=data.framerate,
         output=True,
         frames_per_buffer=rospy.get_param(
-            'frames_per_buffer', default=512
+            'cordial/sound/frames_per_buffer', default=512
         ),
     )
     stream.write(data.data)
@@ -33,6 +33,6 @@ def play_sound(data):
 if __name__ == '__main__':
 
     rospy.init_node('sound_listener')
-    rospy.Subscriber('/sound/play', Sound, play_sound)
+    rospy.Subscriber('cordial/sound/play/stream', Sound, play_sound)
     rospy.spin()
 

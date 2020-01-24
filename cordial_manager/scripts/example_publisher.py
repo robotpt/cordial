@@ -6,7 +6,7 @@ from std_msgs.msg import String
 
 
 rospy.init_node('example_manager_publisher', anonymous=True)
-say_publisher = rospy.Publisher("/cordial/say", String, queue_size=1)
+say_publisher = rospy.Publisher("cordial/say", String, queue_size=1)
 
 
 if __name__ == '__main__':

@@ -1,26 +1,20 @@
 #!/usr/bin/python
 
-
 import rospy
 import tf
 from cordial_face.msg import *
 import threading
 from geometry_msgs.msg import Point
-import sys
 
 
 class FaceClient:
 
     def __init__(self):
 
-        self._robot_name = "cordial"
-
-        base_topic = ""
-        self._base_topic=base_topic
-
-        self._face_pub = rospy.Publisher(base_topic+'face', FaceRequest, queue_size=1)
-        self._lookat_sub = rospy.Subscriber(base_topic+'lookat', LookatRequest, self.lookat_cb)
-        self._keyframe_sub = rospy.Subscriber(base_topic+'face_keyframes', FaceKeyframeRequest, self.keyframe_cb)
+        rospy.init_node('face_client')
+        self._lookat_sub = rospy.Subscriber('cordial/face/look_at', LookatRequest, self.lookat_cb)
+        self._keyframe_sub = rospy.Subscriber('cordial/face/keyframes', FaceKeyframeRequest, self.keyframe_cb)
+        self._face_pub = rospy.Publisher('cordial/face/play', FaceRequest, queue_size=1)
 
         self._shared = {
             "target": "",
@@ -41,12 +35,24 @@ class FaceClient:
                 target = self._shared["target"]
                 time = rospy.Time.now()
                 try:
-                    (trans, rot) = self._tf.lookupTransform("/CoRDial/"+self._robot_name+'/lookat_frame',target, rospy.Time(0))
-                    f = FaceRequest(hold_gaze=FaceRequest.IDLE_OFF, retarget_gaze=True, gaze_target=Point(x=trans[0]*100,y=trans[1]*100,z=trans[2]*100)) #face deals in cm, tf in m
+                    (trans, rot) = self._tf.lookupTransform('cordial/lookat_frame', target, rospy.Time(0))
+
+                    # face deals in cm, tf in m
+                    f = FaceRequest(
+                        hold_gaze=FaceRequest.IDLE_OFF,
+                        retarget_gaze=True,
+                        gaze_target=Point(
+                            x=trans[0]*100,
+                            y=trans[1]*100,
+                            z=trans[2]*100
+                        )
+                    )
                     self._face_pub.publish(f)
 
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    rospy.logwarn("Lookat server can't transform from frame " + target + " to "+ self._robot_name+'/lookat_frame')
+                    rospy.logwarn(
+                        "Can't transform from frame '{target}' to 'cordial/lookat_frame'".format(target=target)
+                    )
             r.sleep()
 
     def lookat_cb(self, goal):
@@ -72,7 +78,5 @@ class FaceClient:
 
 if __name__ == '__main__':
 
-    rospy.init_node('face_client')
-    l = FaceClient()
-
+    FaceClient()
     rospy.spin()

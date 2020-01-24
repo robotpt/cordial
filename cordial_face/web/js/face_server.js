@@ -1,4 +1,4 @@
-var listener,ros, latency_listener, latency_publisher, two;
+var listener,ros, two;
 var container, stats;
 
 var camera, scene, renderer;
@@ -49,7 +49,6 @@ It is responsible for the creation of all the face parts, and defines color, siz
 */
 function startFace(
        bkgd_color,
-       robot_name,
        ros_uri,
        cm_per_pixel,
        viseme_adj,
@@ -204,24 +203,10 @@ function startFace(
 
           listener = new ROSLIB.Topic({
               ros : ros,
-              name : robot_name+'/face',
+              name : 'cordial/face/play',
               messageType : 'cordial_face/FaceRequest'
           });
-
           listener.subscribe(get_goal);
-
-          latency_listener = new ROSLIB.Topic({
-              ros : ros,
-              name : robot_name+'/latency/ROS',
-              messageType : 'std_msgs/String'
-          });
-          latency_listener.subscribe(get_latency);
-
-          latency_publisher = new ROSLIB.Topic({
-        ros : ros,
-        name : robot_name+'/latency/js',
-        messageType : 'std_msgs/String'
-          });
 
           zeroFace(5)
           //finally, start the animation loop.
@@ -301,13 +286,6 @@ function get_goal(message) {
       lookat_real_world(x, y, z, 1.7) //1.7 rad/s is an average human eye saccade speed
     }
   }
-}
-
-function get_latency(msg){
-    console.log(msg)
-    d = new Date();
-    time = d.getTime()-startup_time
-    latency_publisher.publish({data:msg.data+":"+time})
 }
 
 /*

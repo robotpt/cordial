@@ -1,8 +1,9 @@
 TODO
 ====
 
-* Redo the README
 * Add the tablet
+* Redo the README
+* Make some integration tests
 * Add in gesture support + a dedicated way of calling gestures
 * Add the microphone
 * Figure out why sound occasionally fails after closing many times

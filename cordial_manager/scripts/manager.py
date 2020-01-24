@@ -19,11 +19,10 @@ class CordialManager:
             delay_to_publish_visemes_in_seconds,
     ):
 
-        rospy.init_node('manager')
-        rospy.Subscriber('/cordial/say', String, self._say_callback)
-        self._wav_file_publisher = rospy.Publisher('/sound/from_file/wav', String, queue_size=1)
-        self._behavior_publisher = rospy.Publisher('/cordial/behaviors', String, queue_size=1)
-        self._face_publisher = rospy.Publisher('/cordial/face', FaceRequest, queue_size=1)
+        rospy.init_node('cordial_manager', anonymous=False)
+        rospy.Subscriber('cordial/say', String, self._say_callback)
+        self._wav_file_publisher = rospy.Publisher('cordial/sound/play/file_path/wav', String, queue_size=1)
+        self._face_publisher = rospy.Publisher('cordial/face/play', FaceRequest, queue_size=1)
 
         self._aws_client = AwsPollyClient(
             voice=aws_voice_name,
@@ -71,11 +70,11 @@ class CordialManager:
 if __name__ == '__main__':
 
     manager = CordialManager(
-        aws_voice_name=rospy.get_param('speech/aws/voice_name', 'Ivy'),
         aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
-        viseme_play_speed=rospy.get_param('speech/viseme/play_speed', 10),
-        min_viseme_duration_in_seconds=rospy.get_param('speech/viseme/min_duration_in_seconds', 0.05),
-        delay_to_publish_visemes_in_seconds=rospy.get_param('speech/viseme/publish_delay_in_seconds', 0.1),
+        aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),
+        viseme_play_speed=rospy.get_param('cordial/speech/viseme/play_speed', 10),
+        min_viseme_duration_in_seconds=rospy.get_param('cordial/speech/viseme/min_duration_in_seconds', 0.05),
+        delay_to_publish_visemes_in_seconds=rospy.get_param('cordial/speech/viseme/publish_delay_in_seconds', 0.1),
     )
 
     rospy.spin()
