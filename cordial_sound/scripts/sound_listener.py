@@ -13,14 +13,16 @@ def play_sound(data):
 
     p = pyaudio.PyAudio()
 
+    frames_per_buffer = rospy.get_param(
+        'cordial/sound/frames_per_buffer', default=512,
+    )
+    # TODO: figure out why occasionally this line fails
     stream = p.open(
         format=data.format,
         channels=data.num_channels,
         rate=data.framerate,
         output=True,
-        frames_per_buffer=rospy.get_param(
-            'cordial/sound/frames_per_buffer', default=512
-        ),
+        frames_per_buffer=frames_per_buffer,
     )
     stream.write(data.data)
     time.sleep(1)
