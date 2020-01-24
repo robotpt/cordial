@@ -466,44 +466,25 @@ function move_face(t, notViseme){
       lbrow.interpolateBrows(lBrow, t);
 
       // ***** EYELIDS ******
-      // closure = -.5
-      // urlid = getPart("urlid");
-      // ullid = getPart("ullid");
-      // lrlid = getPart("lrlid");
-      // lllid = getPart("lllid");
-      //
-      //
-      // // eyelid flattening (au 7)
-      // lid_flattenr = .6*aus_r[7]
-      // lid_flattenl = .6*aus_l[7]
-      //
-      // lrlid.scale({y:lrlid.idle_scale.y*(1-lid_flattenr)},t);
-      // lllid.scale({y:lllid.idle_scale.y*(1-lid_flattenl)},t);
-      //
-      // // eyelid closing (aus 5,7,43)
       urlid_p = urlid.idle_pos.y;
       lrlid_p = lrlid.idle_pos.y;
       ullid_p = ullid.idle_pos.y;
       lllid_p = lllid.idle_pos.y;
-      // lid_width = ullid.idle_size.x/4;
-      //
+
       var eyeSize = getPart('reye').size
 
       r_eye_width = eyeSize//(urlid_p-lrlid_p)+urlid.threedee.scale.y*lid_width+lrlid.threedee.scale.y*lid_width;
       l_eye_width = eyeSize//(ullid_p-lllid_p)+ullid.threedee.scale.y*lid_width+lllid.threedee.scale.y*lid_width;
-      //
-      // //[-.5,0]
+
       openr = -.5*aus_r[5]
       openl = -.5*aus_l[5]
-      //
-      // //[0,.6]
+
       closer = .6*aus_r[7]
       closel = .6*aus_l[7]
-      //
-      // //[-.5,1]
+
       closurer = (openr+closer)+aus_r[43]*(1-(openr+closer))
       closurel = (openl+closel)+aus_l[43]*(1-(openl+closel))
-      //
+
       urlid.pos({y:urlid_p+r_eye_width/2*(closurer)},t);
       lrlid.pos({y:lrlid_p-r_eye_width/2*(closurer)},t);
       ullid.pos({y:ullid_p+l_eye_width/2*(closurel)},t);
@@ -538,7 +519,6 @@ function move_face(t, notViseme){
     rcorner.x -= max_x_variation*(.2*aus_r[12] + .05*aus_r[13] + .25*aus_r[14]-.1*aus_r[26] -.3*aus_r[27] +.35*aus_r[17]-.7*aus_r[18] + .25*aus_r[20] -.2*aus_r[23] -.1*aus_r[24])/1.1
     rcorner.y += max_down_dist*(-.2*aus_r[25] -.2*aus_r[26] + .7*aus_r[13]-1.5*aus_r[15]-.5*aus_r[27] - .2*aus_r[20] -.3*aus_r[23] -.5*aus_r[24])/3.4
 
-
     upperl = {x:ulip.idleControlPoint.x2, y:ulip.idleControlPoint.y2}
     upperr = {x:ulip.idleControlPoint.x1, y:ulip.idleControlPoint.y1}
 
@@ -546,8 +526,6 @@ function move_face(t, notViseme){
     upperl.y += max_up_dist*(.1*aus_l[25] +.3*aus_l[26] +.6*aus_l[27] + .55*aus_l[10]+.35*aus_l[17])/2.2
     upperr.x -= max_x_variation*(.55*aus_r[10] + .25*aus_r[14]-.4*aus_r[18] + .25*aus_r[20] -.1*aus_r[23])/1.05
     upperr.y += max_up_dist*(.1*aus_r[25] +.3*aus_r[26] +.6*aus_r[27] + .55*aus_r[10]+.35*aus_r[17])/2.2
-
-
 
     lowerl = {x:llip.idleControlPoint.x2, y:llip.idleControlPoint.y2}
     lowerr = {x:llip.idleControlPoint.x1, y:llip.idleControlPoint.y1}
@@ -559,7 +537,6 @@ function move_face(t, notViseme){
 
     upperLip = {x0:rcorner.x,y0:rcorner.y, x1:upperr.x,y1:upperr.y, x2:upperl.x,y2: upperl.y , x3:lcorner.x,y3:lcorner.y}
     lowerLip = {x0:rcorner.x,y0:rcorner.y, x1:lowerr.x,y1:lowerr.y, x2:lowerl.x,y2: lowerl.y , x3:lcorner.x,y3:lcorner.y}
-
 
     ulip.interpolateLips(upperLip, t);
     llip.interpolateLips(lowerLip, t);
@@ -986,14 +963,12 @@ x,y,z - floats representing to coordinates of the point to look at
 t - float representing time to move to the location
 */
 function lookat(x,y,z,t){
-    //console.log("Looking at: " + x + "," + y + "," + z)
 
     var leye = getPart("leye")
 
     var ygoal = leye.idle_pos.y - (y * leye.size) / z
     var xoffset = (leye.size*(leye.separation/2 + x))/(Math.sqrt(Math.pow(z,2) + Math.pow(leye.separation/2 + x,2)))
     var xgoal = leye.idle_pos.x + xoffset
-
 
     leye.pos({x: xgoal, y:ygoal}, t);
 
@@ -1013,15 +988,11 @@ function lookat_real_world(realx,realy,realz,vel){
     y = realy/cm_per_px;
     z = realz/cm_per_px;
 
-
     var leye = getPart("leye")
 
     var ygoal = leye.idle_pos.y - (y * leye.size) / z
     var lxoffset = (leye.size*(leye.separation/2 + x))/(Math.sqrt(Math.pow(z,2) + Math.pow(leye.separation/2 + x,2)))
     var lxgoal = leye.idle_pos.x + lxoffset
-
-
-
 
     var reye = getPart("reye")
 
@@ -1062,7 +1033,6 @@ function doIdle(){
       last_blink = now;
     }
 
-
     if(!looking){
     var xrange = windowHalfX;
     var yrange = windowHalfY;
@@ -1090,21 +1060,12 @@ function blink(t){
 }
 
 function animate(){
-  // console.log('animating')
-  //print_elapsed()
-  //set_time()
-  //requestAnimationFrame( animate ); //I guess we don't need this in the two paradigm?
-  //set_time()
   if (typeof gui === "undefined" && new Date().getTime() > lockIdleUntil){
     doIdle();
   }
-  //print_elapsed()
 
   check_and_play_visemes()
   TWEEN.update();
-
-  //print_elapsed()
-  //set_time()
 }
 
 
@@ -1150,10 +1111,6 @@ function onDocumentMouseDown( event ) {
 
     event.preventDefault();
 
-    //document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    //document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-    //document.addEventListener( 'mouseout', onDocumentMouseOut, false );
-
     mouseX = event.clientX - windowHalfX;
     mouseY = windowHalfY - event.clientY;
     clickOrTouch(mouseX, mouseY)
@@ -1171,50 +1128,16 @@ function clickOrTouch( x, y) {
 
 
 function onDocumentMouseUp( event ) {
-/**
-    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-**/
 }
 
 function onDocumentMouseOut( event ) {
-/**
-    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-**/
 }
 
 function onDocumentTouchStart( event ) {
-/**
-    if ( event.touches.length == 1 ) {
-
-  event.preventDefault();
-
-  mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
-  update_goal((event.touches[ 0 ].pageX)/100)
-  targetRotationOnMouseDown = targetRotation;
-
-    }
-**/
     mouseX = event.touches[0].pageX - windowHalfX;
     mouseY = windowHalfY - event.touches[0].pageY;
     clickOrTouch(mouseX, mouseY)
-
-
 }
 
 function onDocumentTouchMove( event ) {
-/**
-    if ( event.touches.length == 1 ) {
-
-  event.preventDefault();
-
-  mouseX = event.touches[ 0 ].pageX - windowHalfX;
-  update_goal((event.touches[ 0 ].pageX)/100)
-  targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
-
-    }
-**/
 }
