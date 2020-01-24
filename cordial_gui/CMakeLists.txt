@@ -10,6 +10,10 @@ add_message_files(
   FILES
   Display.msg
 )
+add_service_files(
+  FILES
+  Gui.srv
+)
 generate_messages()
 catkin_package()
 
