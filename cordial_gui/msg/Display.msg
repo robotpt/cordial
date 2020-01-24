@@ -1,0 +1,4 @@
+string type
+string content
+string[] buttons
+string[] args

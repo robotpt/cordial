@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cordial_gui</name>
+  <version>0.0.0</version>
+  <description>The cordial_gui package</description>
+  <maintainer email="root@todo.todo">root</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rosbridge_server</build_depend>
+  <build_export_depend>rosbridge_server</build_export_depend>
+  <exec_depend>rosbridge_server</exec_depend>
+</package>
