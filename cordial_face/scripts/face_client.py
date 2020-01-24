@@ -9,11 +9,11 @@ from geometry_msgs.msg import Point
 import sys
 
 
-class LookatServer:
+class FaceClient:
 
-    def __init__(self, robot_name):
+    def __init__(self):
 
-        self._robot_name = robot_name
+        self._robot_name = "cordial"
 
         base_topic = ""
         self._base_topic=base_topic
@@ -72,7 +72,7 @@ class LookatServer:
 
 if __name__ == '__main__':
 
-    rospy.init_node('cordial_lookat')
-    l = LookatServer(sys.argv[1])
+    rospy.init_node('face_client')
+    l = FaceClient()
 
     rospy.spin()

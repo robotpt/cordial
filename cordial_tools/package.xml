@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cordial_sound</name>
+  <name>cordial_tools</name>
   <version>0.0.1</version>
-  <description>The cordial_sound package</description>
+  <description>The cordial_tools package</description>
   <maintainer email="audrow.nash@gmail.com">Audrow Nash</maintainer>
   <license>MIT</license>
 
@@ -10,7 +10,4 @@
   <build_depend>rospy</build_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
-  <exec_depend>python-pyaudio</exec_depend>
-  <exec_depend>python-wave</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
 </package>

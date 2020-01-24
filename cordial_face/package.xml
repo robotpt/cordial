@@ -1,24 +1,14 @@
-<package>
+<?xml version="1.0"?>
+<package format="2">
   <name>cordial_face</name>
-  <version>0.1.2</version>
-  <description>
-
-     Javascript face for the SPRITE robot.
-
-  </description>
-  <author>Elaine</author>
-  <maintainer email="prmehta24@gmail.com">Parimal Mehta</maintainer>
-  <license>GPL</license>
-  <url>http://ros.org/wiki/cordial_face</url>
+  <version>0.0.1</version>
+  <description>A Javascript face that uses facial action units.</description>
+  <maintainer email="audrow.nash@gmail.com">Audrow Nash</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-
-
   <build_depend>rospy</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>message_generation</build_depend>
-  <run_depend>message_runtime</run_depend>
-  
+  <exec_depend>message_runtime</exec_depend>
 </package>
-
-
