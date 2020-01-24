@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import rospy
 import tf
-from cordial_face.msg import *
+from cordial_face.msg import LookatRequest, FaceKeyframeRequest, FaceRequest
 import threading
 from geometry_msgs.msg import Point
 
