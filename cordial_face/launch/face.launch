@@ -3,7 +3,6 @@
 	<arg name="web_directory_path" value="$(find cordial_face)/web"/>
 	<arg name="port" value="8080"/>
 
-	<node name="face_client" pkg="cordial_face" type="face_server.py" output="screen" />
     <node pkg="cordial_tools" type="http_server_runner.py" name="face_http_server" output="screen"
         args="$(arg web_directory_path) $(arg port)" />
 

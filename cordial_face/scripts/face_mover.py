@@ -7,11 +7,11 @@ import threading
 from geometry_msgs.msg import Point
 
 
-class FaceServer:
+class FaceMover:
 
     def __init__(self):
 
-        rospy.init_node('face_client')
+        rospy.init_node('face_mover')
         self._lookat_sub = rospy.Subscriber('cordial/face/look_at', LookatRequest, self.lookat_cb)
         self._keyframe_sub = rospy.Subscriber('cordial/face/keyframes', FaceKeyframeRequest, self.keyframe_cb)
         self._face_pub = rospy.Publisher('cordial/face/play', FaceRequest, queue_size=1)
@@ -78,5 +78,5 @@ class FaceServer:
 
 if __name__ == '__main__':
 
-    FaceServer()
+    FaceMover()
     rospy.spin()
