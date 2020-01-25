@@ -12,7 +12,7 @@ add_message_files(
 )
 add_service_files(
   FILES
-  Gui.srv
+  Prompt.srv
 )
 generate_messages()
 catkin_package()
