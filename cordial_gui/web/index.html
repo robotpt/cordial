@@ -1,30 +1,288 @@
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-    <title>GUI</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" href="#" />
+    <!-- suppresses favicon error -->
 
-    <!-- required for ros communications -->
-    <script src="libs/eventemitter2.min.js" type="text/javascript"></script>
-    <script src="libs/roslib.min.js" type="text/javascript"></script>
-    <script src="libs/jquery.js" type="text/javascript"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <!-- Our script -->
-    <script src="js/main.js"></script>
+    <title>Hello, world!</title>
+    <style>
+        body,
+        p {
+            padding: 0;
+            margin: 0;
+        }
+        
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .center {
+            vertical-align: middle;
+            display: inline-block;
+        }
+        
+        .background {
+            background-color: aqua;
+        }
+        
+        #black {
+            background-color: black;
+        }
+        
+        #black,
+        #1-col,
+        #2-col {
+            display: none;
+        }
+    </style>
 
 </head>
 
 <body>
-    <p id="text">
-        Not connected to ROS websocket
-    <p>
-    <input id="input" type="text" placeholder="text"/>
-    <input id="submit" type="button" value="Submit"/>
+    <div id="top">
+        <input type="button" value="Fade in next" id="my-button">
+    </div>
+    <div class="background h-100">
+        <div id="1-col" class="container h-100">
+            <div class="row h-100 justify-content-center align-items-center">
+                <div class="col-sm-12">
+                    <div id="1-col-content"></div>
+                </div>
+            </div>
+        </div>
+        <div id="2-col" class="container h-100">
+            <div class="row h-100 justify-content-center align-items-center">
+                <div class="col-sm-8">
+                    <div id="left-col"></div>
+                </div>
+                <div class="col-sm-4">
+                    <div id="right-col"></div>
+                </div>
+            </div>
+        </div>
+        <div id="black" class="h-100"></div>
 
-    <!-- This must come after the html has been setup -->
-    <script>
-        rosInit()
-    </script>
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="libs/jquery.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+        <script>
+            /* Note that 'this' is passed into the callback function */
+            function make_text_entry(content, button, callback_fn) {
+
+                var display_html = ''
+                display_html += _prepare_content(content)
+                display_html += '<input type="text"> <br>'
+                display_html += _make_buttons(button, false)
+
+                var parent_selector = "#1-col"
+                var content_selector = "#1-col-content"
+
+                var col_content = $("#1-col-content")
+                col_content.html(display_html)
+
+                _prompt(
+                    parent_selector,
+                    content_selector,
+                    _get_text_value,
+                    content_selector,
+                    callback_fn,
+                    content_selector
+                )
+            }
+
+            function multiple_choice_prompt(content, buttons, callback_fn) {
+
+                _two_col_prompt(
+                    content,
+                    _make_buttons(buttons),
+                    _get_pushed_button_value,
+                    undefined,
+                    callback_fn
+                );
+            }
+
+            function _two_col_prompt(
+                content,
+                input,
+                get_value_fn,
+                selector_to_element_of_interest,
+                callback_fn
+            ) {
+
+                var content_col = $("#left-col");
+                var input_col = $("#right-col");
+
+                content_col.html(_prepare_content(content));
+                input_col.html(input);
+
+                var selectors_to_clear = ["#left-col", "#right-col"]
+                _prompt(
+                    "#2-col",
+                    "#right-col",
+                    get_value_fn,
+                    selector_to_element_of_interest,
+                    callback_fn,
+                    selectors_to_clear
+                )
+            }
+
+            /* 
+             * Inputs:
+             *   parent_selector: 
+                    The selector that should be shown for this prompt and then
+                    faded away after the prompt has been answered.
+             *   input_selector: 
+                    The selector that has a button as a child that should be 
+                    used as submit, note that other buttons can be in other 
+                    places, e.g., a div in the parent or even a div in the 
+                    input selector.
+             *   get_value_fn: 
+                    Get a value after a button has been clicked, the function 
+                    takes 'this' (the button clicked) and the selector of 
+                    interest as arguements.  The selector of interest can be 
+                    used to grab the relevant value, such as in a text field
+                    or slider.
+             *   callback_fn:
+             *      The callback function takes the value returned by 
+                    get_value_fn and does something with it, e.g., publishes
+                    it to a ROS network.
+             *   selectors_to_clear:
+                    These are selectors (array or single string) that will 
+                    have their HTML field set to an empty string (""). This
+                    helps make sure that things are cleaned up after they are
+                    used and that previous questions are not popped up before
+                    new content is loaded. 
+             */
+            function _prompt(
+                parent_selector,
+                input_selector,
+                get_value_fn,
+                selector_to_element_of_interest,
+                callback_fn,
+                selectors_to_clear
+            ) {
+
+                _show_element_and_hide_siblings(parent_selector)
+
+                $(input_selector).children("input:button").click(function() {
+
+                    var value = get_value_fn(this, selector_to_element_of_interest)
+                    callback_fn(value);
+
+                    $.when($(parent_selector).fadeOut())
+                        .done(
+                            function() {
+                                _clear_html_elements(selectors_to_clear)
+                            }
+                        );
+                })
+            }
+
+            function _show_element_and_hide_siblings(selector_str) {
+                var selector = $(selector_str);
+                selector.fadeIn("slow");
+                selector.siblings().hide();
+            }
+
+            function _prepare_content(content) {
+                return '<p>' + content + '</p>';
+            }
+
+            function _make_buttons(buttons, is_each_button_on_new_line = true) {
+                buttons = _make_sure_is_array(buttons)
+                out = ''
+                for (var i = 0; i < buttons.length; i++) {
+                    out += '<input type="button" value="' + buttons[i] + '" />';
+
+                    // put a break in between buttons and not after the last button
+                    if (is_each_button_on_new_line && i < buttons.length - 1) {
+                        out += '<br>'
+                    }
+                }
+                return out
+            }
+
+            function _clear_html_elements(selectors) {
+                selectors = _make_sure_is_array(selectors)
+                for (var i = 0; i < selectors.length; i++) {
+                    $(selectors[i]).html("")
+                }
+
+            }
+
+            function _make_sure_is_array(value) {
+                if (!Array.isArray(value)) {
+                    value = [value]
+                }
+                return value
+            }
+
+            function _get_pushed_button_value(button, _) {
+                return button.value
+            }
+
+            function _get_text_value(_, parent_selector) {
+                var text_inputs = $(parent_selector).children("input:text")
+                if (text_inputs.length != 1) {
+                    throw "There should only be one text entry element"
+                }
+                return text_inputs[0].value
+            }
+
+            function _log_value(value) {
+                console.log(value)
+            }
+
+            make_text_entry(
+                "What's your name?",
+                "Done",
+                _log_value
+            )
+
+            // DEBUG
+            var idx = 0
+
+            var displays = [
+                function() {
+                    multiple_choice_prompt(
+                        "How are you?", ["good", "okay", "bad"],
+                        _log_value
+                    )
+                },
+                function() {
+                    make_text_entry(
+                        "What's your name?",
+                        "Done",
+                        _log_value
+                    )
+                }
+            ];
+            $("#my-button").click(function() {
+                    var num_displays = displays.length;
+                    idx = (idx + 1) % displays.length;
+                    displays[idx]();
+                })
+                /*
+                var buttons = ""
+                for (var i = 0; i < 3; i++) {
+                    buttons += '<input type="button" value="' + i + '"/>'
+                }
+                $("#top").html(buttons)
+                */
+        </script>
+
+
 </body>
 
 </html>
