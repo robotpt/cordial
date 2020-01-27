@@ -8,7 +8,7 @@ find_package(catkin REQUIRED
 
 add_message_files(
   FILES
-  Display.msg
+  Content.msg
 )
 add_service_files(
   FILES

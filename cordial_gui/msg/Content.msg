@@ -1,4 +1,4 @@
 string type
-string text
+string content
 string[] buttons
 string[] args

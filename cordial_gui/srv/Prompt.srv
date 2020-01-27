@@ -1,6 +1,3 @@
-string type
-string content
-string[] buttons
-string[] args
+Content content
 ---
 string response
