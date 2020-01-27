@@ -25,7 +25,7 @@ function setup_cycle_through_displays() {
         }
     ];
     var idx = 0
-    displays[idx]();
+        //displays[idx]();
     $("#my-button").click(function() {
         var num_displays = displays.length;
         idx = (idx + 1) % displays.length;
@@ -52,16 +52,15 @@ function show_black_screen(callback_fn) {
 
 function make_text_entry(content, button, callback_fn) {
 
-    var parent_selector = "#1-col"
-    var content_selector = "#1-col-content"
-    var col_content = $("#1-col-content")
+    var parent_selector = "#col-1"
+    var content_selector = "#col-1-content"
 
     var display_html = ''
     display_html += _prepare_content(content)
     display_html += '<input type="text"> <br>'
     display_html += _make_buttons(button, false)
 
-    col_content.html(display_html)
+    $(content_selector).html(display_html)
 
     _prompt(
         parent_selector,
@@ -92,17 +91,17 @@ function _two_col_prompt(
     callback_fn
 ) {
 
-    var parent_selector = "#2-col"
-    var content_col = $("#left-col");
-    var input_col = $("#right-col");
+    var parent_selector = "#col-2";
+    var content_selector = "#col-2-left";
+    var input_selector = "#col-2-right";
 
-    content_col.html(_prepare_content(content));
-    input_col.html(input);
+    $(content_selector).html(_prepare_content(content));
+    $(input_selector).html(input);
 
-    var selectors_to_clear = [content_col, input_col]
+    var selectors_to_clear = [content_selector, input_selector]
     _prompt(
         parent_selector,
-        input_col,
+        input_selector,
         get_value_fn,
         selector_to_element_of_interest,
         callback_fn,
