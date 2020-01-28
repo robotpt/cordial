@@ -1,24 +1,3 @@
-var idleTime = 0;
-$(document).ready(function() {
-    //Increment the idle time counter every minute.
-    setInterval(timerIncrement, 1000); // 1 second
-
-    //Zero the idle timer on mouse movement.
-    $(this).mousemove(function(e) {
-        idleTime = 0;
-    });
-    $(this).keypress(function(e) {
-        idleTime = 0;
-    });
-});
-
-function timerIncrement() {
-    idleTime = idleTime + 1;
-    if (typeof idle_time_publisher !== 'undefined') {
-        idle_time_publisher.publish({ data: idleTime });
-    }
-}
-
 function rosInit(ros_master_uri = '') {
 
     if (ros_master_uri == '') {
@@ -65,7 +44,7 @@ function setupRosNetwork() {
         name: 'cordial/gui/display',
         messageType: 'cordial_gui/Display'
     });
-    display_listener.subscribe(updateText);
+    display_listener.subscribe(make_display);
 
     user_response_publisher = new ROSLIB.Topic({
         ros: ros,
@@ -74,10 +53,107 @@ function setupRosNetwork() {
         messageType: 'std_msgs/String'
     });
 
-    idle_time_publisher = new ROSLIB.Topic({
+    mouse_event_publisher = new ROSLIB.Topic({
         ros: ros,
-        name: '/cordial/gui/idle_time',
+        name: 'cordial/gui/event/mouse',
         queue_size: 1,
-        messageType: 'std_msgs/UInt32'
+        messageType: 'cordial_gui/MouseEvent'
     });
+
+    keypress_event_publisher = new ROSLIB.Topic({
+        ros: ros,
+        name: 'cordial/gui/event/keypress',
+        queue_size: 1,
+        messageType: 'std_msgs/String'
+    });
+}
+
+function make_display(display_msg) {
+
+    var display_type = display_msg.type
+    var content = display_msg.content
+    var buttons = display_msg.buttons
+    var args = display_msg.args
+    var buttons_delay_seconds = display_msg.buttons_delay_seconds
+    var callback_fn = publish_user_response
+
+    var is_valid_display_type = true;
+    switch (display_type) {
+        case 'black':
+            show_black_screen();
+        case 'multiple choice':
+            multiple_choice_prompt(content, buttons, callback_fn);
+            break;
+        case 'text entry':
+            make_text_entry(content, buttons, callback_fn);
+            break;
+        default:
+            is_valid_display_type = false;
+            var message = "'" + display_type + "' not implemented";
+            console.log(message);
+            alert(message);
+            break;
+    }
+}
+
+function publish_user_response(value) {
+    console.log("Publishing '" + value + "'")
+    user_response_publisher.publish({ data: value })
+}
+
+$(document).ready(function() {
+
+    var enable_mouse_move_callback = true;
+    var enable_times_per_second = 10;
+
+    var ms_before_enable = 1000 / enable_times_per_second
+    window.setInterval(function() {
+            enable_mouse_move_callback = true;
+        },
+        enable_times_per_second
+    );
+    $(this).mousemove(function(e) {
+        if (enable_mouse_move_callback) {
+            _publish_mouse_event(e, false);
+            enable_mouse_move_callback = false;
+        }
+    })
+    $(this).click(function(e) {
+        _publish_mouse_event(e, true);
+    })
+    $(this).keypress(function(e) {
+        _publish_key_press(e);
+    });
+});
+
+function _publish_key_press(event) {
+    var out_dict = { data: event.code }
+    keypress_event_publisher.publish(out_dict)
+    console.log("Publishing keypress event: ", out_dict)
+}
+
+function _publish_mouse_event(event, is_click) {
+    var normalized_pos = _get_normalized_mouse_position(event);
+    var out_dict = {
+        percentage_width_x: normalized_pos["x"],
+        percentage_height_y: normalized_pos["y"],
+        is_click: is_click
+    }
+    mouse_event_publisher.publish(out_dict);
+    console.log("Publishing mouse event: ", out_dict)
+}
+
+function _get_normalized_mouse_position(event) {
+    var height = $(document).height()
+    var width = $(document).width()
+    var x_pos = _round_percentage(event.clientX / width)
+    var y_pos = _round_percentage(event.clientY / height)
+    return {
+        x: x_pos,
+        y: y_pos
+    }
+}
+
+function _round_percentage(value) {
+    return Math.round(value * 100)
 }

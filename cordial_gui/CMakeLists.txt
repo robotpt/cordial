@@ -8,11 +8,12 @@ find_package(catkin REQUIRED
 
 add_message_files(
   FILES
-  Content.msg
+  Display.msg
+  MouseEvent.msg
 )
 add_service_files(
   FILES
-  Prompt.srv
+  Ask.srv
 )
 generate_messages()
 catkin_package()
