@@ -51,10 +51,10 @@
         <script src="src/js/ros_interface.js" type="text/javascript"></script>
 
         <script>
-            var IS_DEBUG = true
+            var IS_DEBUG_DISPLAY = false
             var ROS_MASTER_URI = ''
 
-            if (!IS_DEBUG) {
+            if (!IS_DEBUG_DISPLAY) {
                 show_black_screen();
                 rosInit(ROS_MASTER_URI);
             } else {
