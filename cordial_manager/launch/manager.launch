@@ -8,7 +8,9 @@
 
     <node pkg="cordial_manager" type="manager.py" name="manager" output="screen"/>
 
+	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find cordial_sound)/launch/sound.launch" />
     <include file="$(find cordial_face)/launch/face.launch" />
+    <include file="$(find cordial_gui)/launch/gui.launch" />
 
 </launch>

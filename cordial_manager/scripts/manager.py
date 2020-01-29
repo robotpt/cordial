@@ -3,12 +3,23 @@
 import rospy
 import threading
 
-from std_msgs.msg import String
 from aws_polly_client import AwsPollyClient
+
+from std_msgs.msg import String
 from cordial_face.msg import FaceRequest
+from cordial_gui.srv import Ask
 
 
 class CordialManager:
+
+    _NODE_NAME = "cordial_manager"
+
+    _SAY_TOPIC = "cordial/say"
+    _PLAY_WAV_FILE_TOPIC = "cordial/sound/play/file_path/wav"
+    _PLAY_FACE_TOPIC = "cordial/face/play"
+
+    _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
+    _ASK_ON_GUI_SERVICE = "cordial/gui/ask"
 
     def __init__(
             self,
@@ -19,10 +30,18 @@ class CordialManager:
             delay_to_publish_visemes_in_seconds,
     ):
 
-        rospy.init_node('cordial_manager', anonymous=False)
-        rospy.Subscriber('cordial/say', String, self._say_callback)
-        self._wav_file_publisher = rospy.Publisher('cordial/sound/play/file_path/wav', String, queue_size=1)
-        self._face_publisher = rospy.Publisher('cordial/face/play', FaceRequest, queue_size=1)
+        rospy.init_node(self._NODE_NAME, anonymous=False)
+        rospy.Subscriber(self._SAY_TOPIC, String, self._say_callback)
+
+        self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
+        self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
+
+        self._say_and_ask_server = rospy.Service(
+            self._SAY_AND_ASK_ON_GUI_SERVICE,
+            Ask,
+            self._say_and_ask_on_gui
+        )
+        self._gui_client = rospy.ServiceProxy(self._ASK_ON_GUI_SERVICE, Ask)
 
         self._aws_client = AwsPollyClient(
             voice=aws_voice_name,
@@ -36,9 +55,26 @@ class CordialManager:
     def _say_callback(self, data):
         self.say(data.data)
 
+    def _say_and_ask_on_gui(self, request):
+
+        rospy.wait_for_service(self._ASK_ON_GUI_SERVICE)
+
+        content = request.display.content
+        request.display.content, file_path, behavior_schedule = self._aws_client.run(content)
+
+        self._say(file_path, behavior_schedule)
+        try:
+            return self._gui_client(request)
+        except rospy.ServiceException, e:
+            print("Service call failed: %s" % e)
+
     def say(self, text):
 
         _, file_path, behavior_schedule = self._aws_client.run(text)
+
+        self._say(file_path, behavior_schedule)
+
+    def _say(self, file_path, behavior_schedule):
 
         self._wav_file_publisher.publish(file_path)
         self._delay_publishing_visemes(
@@ -69,12 +105,11 @@ class CordialManager:
 
 if __name__ == '__main__':
 
-    manager = CordialManager(
+    CordialManager(
         aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
         aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),
         viseme_play_speed=rospy.get_param('cordial/speech/viseme/play_speed', 10),
         min_viseme_duration_in_seconds=rospy.get_param('cordial/speech/viseme/min_duration_in_seconds', 0.05),
         delay_to_publish_visemes_in_seconds=rospy.get_param('cordial/speech/viseme/publish_delay_in_seconds', 0.1),
     )
-
     rospy.spin()

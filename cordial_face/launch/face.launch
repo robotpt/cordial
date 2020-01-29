@@ -6,6 +6,4 @@
     <node pkg="cordial_tools" type="http_server_runner.py" name="face_http_server" output="screen"
         args="$(arg web_directory_path) $(arg port)" />
 
-	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
-
 </launch>
