@@ -33,21 +33,9 @@ function setup_cycle_through_displays() {
     })
 }
 
-function show_black_screen(callback_fn) {
+function show_black_screen() {
     var parent_selector = "#black";
-
-    // remove other callbacks that have been added
-    $(parent_selector).unbind();
-
     _show_element_and_hide_siblings(parent_selector)
-    $(parent_selector).click(function() {
-
-        if (typeof callback_fn !== "undefined") {
-            callback_fn();
-        }
-
-        $.when($(parent_selector).fadeOut())
-    })
 }
 
 function make_text_entry(content, button, callback_fn) {

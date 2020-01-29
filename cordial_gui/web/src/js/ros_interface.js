@@ -70,6 +70,8 @@ function setupRosNetwork() {
 
 function make_display(display_msg) {
 
+    console.log("Message received:", display_msg)
+
     var display_type = display_msg.type
     var content = display_msg.content
     var buttons = display_msg.buttons
@@ -81,6 +83,7 @@ function make_display(display_msg) {
     switch (display_type) {
         case 'black':
             show_black_screen();
+            break;
         case 'multiple choice':
             multiple_choice_prompt(content, buttons, callback_fn);
             break;
@@ -110,7 +113,7 @@ $(document).ready(function() {
     window.setInterval(function() {
             enable_mouse_move_callback = true;
         },
-        enable_times_per_second
+        ms_before_enable
     );
     $(this).mousemove(function(e) {
         if (enable_mouse_move_callback) {
