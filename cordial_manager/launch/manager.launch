@@ -1,5 +1,10 @@
 <launch>
 
+    <arg name="is_launch_server" default="false" />
+    <group if="$(arg is_launch_server)">
+        <include file="$(find cordial_manager)/launch/start_servers.launch"/>
+    </group>
+
     <param name="aws/region_name" type="str" value="us-west-1"/>
     <param name="cordial/speech/aws/voice_name" type="str" value="Ivy"/>
     <param name="cordial/speech/viseme/play_speed" type="double" value="10"/>
@@ -10,7 +15,6 @@
 
 	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find cordial_sound)/launch/sound.launch" />
-    <include file="$(find cordial_face)/launch/face.launch" />
     <include file="$(find cordial_gui)/launch/gui.launch" />
 
 </launch>

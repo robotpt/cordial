@@ -1,10 +1,18 @@
 <launch>
 
-	<arg name="web_directory_path" value="$(find cordial_gui)/web"/>
-	<arg name="port" value="8081"/>
+    <arg name="is_launch_server" default="false" />
+    <group if="$(arg is_launch_server)">
+        <arg name="port" default="8080"/>
+        <include file="$(find cordial_gui)/launch/gui_server.launch">
+            <arg name="port" value="$(arg port)"/>
+        </include>
+    </group>
 
-    <node pkg="cordial_tools" type="http_server_runner.py" name="gui_http_server" output="screen"
-        args="$(arg web_directory_path) $(arg port)" />
-    <node pkg="cordial_gui" type="server.py" name="gui_server" output="screen" />
+    <param name="cordial/gui/seconds_before_timeout" type="double" value="5"/>
+    <param name="cordial/gui/timeout_msg" type="str" value="--timeout--"/>
+    <param name="cordial/gui/seconds_with_no_prompt_before_display_goes_off" type="double" value="1"/>
+    <param name="cordial/gui/state_manager_seconds_between_calls" type="double" value="0.1"/>
+
+    <node pkg="cordial_gui" type="gui_controller.py" name="gui_controller" output="screen" />
 
 </launch>
