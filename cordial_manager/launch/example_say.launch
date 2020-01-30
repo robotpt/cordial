@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="cordial_manager" type="example_say.py" name="example_say" output="screen"/>
+
+    <include file="$(find cordial_manager)/launch/manager.launch" />
+
+</launch>

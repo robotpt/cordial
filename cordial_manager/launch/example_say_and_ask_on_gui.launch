@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="cordial_manager" type="example_say_and_ask_on_gui.py" name="example_say_and_ask_on_gui" output="screen"/>
+
+    <include file="$(find cordial_manager)/launch/manager.launch" />
+
+</launch>

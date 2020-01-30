@@ -1,5 +1,6 @@
 <launch>
 
+    <!-- It is often easier to start the servers separately then launch this file -->
     <arg name="is_launch_server" default="false" />
     <group if="$(arg is_launch_server)">
         <include file="$(find cordial_manager)/launch/start_servers.launch"/>
@@ -13,7 +14,6 @@
 
     <node pkg="cordial_manager" type="manager.py" name="manager" output="screen"/>
 
-	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
     <include file="$(find cordial_sound)/launch/sound.launch" />
     <include file="$(find cordial_gui)/launch/gui.launch" />
 
