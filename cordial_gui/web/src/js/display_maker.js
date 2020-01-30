@@ -55,8 +55,7 @@ function make_text_entry(content, button, callback_fn) {
         content_selector,
         _get_text_value,
         content_selector,
-        callback_fn,
-        content_selector
+        callback_fn
     );
 }
 
@@ -86,14 +85,12 @@ function _two_col_prompt(
     $(content_selector).html(_prepare_content(content));
     $(input_selector).html(input);
 
-    var selectors_to_clear = [content_selector, input_selector]
     _prompt(
         parent_selector,
         input_selector,
         get_value_fn,
         selector_to_element_of_interest,
-        callback_fn,
-        selectors_to_clear
+        callback_fn
     );
 }
 
@@ -130,24 +127,20 @@ function _prompt(
     get_value_fn,
     selector_to_element_of_interest,
     callback_fn,
-    selectors_to_clear
 ) {
 
     _show_element_and_hide_siblings(parent_selector)
 
     $(input_selector).children("input:button").click(function() {
 
-        var value = get_value_fn(this, selector_to_element_of_interest)
+        // Make sure that only one button can be pushed and that it can only be pushed once
+        $(input_selector).children("input:button").prop("disabled", "true");
+
+        var value = get_value_fn(this, selector_to_element_of_interest);
         if (typeof callback_fn !== "undefined") {
             callback_fn(value);
         }
-
-        $.when($(parent_selector).fadeOut())
-            .done(
-                function() {
-                    _clear_html_elements(selectors_to_clear)
-                }
-            );
+        $(parent_selector).fadeOut();
     })
 }
 
