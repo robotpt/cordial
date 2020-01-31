@@ -3,7 +3,7 @@
     <param name="cordial/sound/wav/header_length" type="int" value="24"/>
     <param name="cordial/sound/frames_per_buffer" type="int" value="512"/>
 
-    <node pkg="cordial_sound" type="sound_listener.py" name="sound_listener" output="screen"/>
+    <node pkg="cordial_sound" type="sound_listener.py" name="sound_listener" respawn="true" output="screen"/>
     <node pkg="cordial_sound" type="wav_file_publisher.py" name="wav_file_publisher" output="screen"/>
 
 </launch>
