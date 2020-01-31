@@ -13,6 +13,7 @@ function rosInit(ros_master_uri = '') {
     ros.on('connection', function() {
         console.log('Connected to websocket server!');
         setupRosNetwork()
+        setup_mouse_and_keypress_event_publishers();
     });
 
     // If unable to connect or the connection closes, refresh the page
@@ -68,6 +69,32 @@ function setupRosNetwork() {
     });
 }
 
+function setup_mouse_and_keypress_event_publishers() {
+
+    var enable_mouse_move_callback = true;
+    var enable_times_per_second = 10;
+
+    var ms_before_enable = 1000 / enable_times_per_second
+    window.setInterval(function() {
+            enable_mouse_move_callback = true;
+        },
+        ms_before_enable
+    );
+    $(this).mousemove(function(e) {
+        if (enable_mouse_move_callback) {
+            _publish_mouse_event(e, false);
+            enable_mouse_move_callback = false;
+        }
+    })
+    $(this).click(function(e) {
+        _publish_mouse_event(e, true);
+    })
+    $(this).keypress(function(e) {
+        _publish_key_press(e);
+    });
+}
+
+
 function make_display(display_msg) {
 
     console.log("Message received:", display_msg)
@@ -103,31 +130,6 @@ function publish_user_response(value) {
     console.log("Publishing '" + value + "'")
     user_response_publisher.publish({ data: value })
 }
-
-$(document).ready(function() {
-
-    var enable_mouse_move_callback = true;
-    var enable_times_per_second = 10;
-
-    var ms_before_enable = 1000 / enable_times_per_second
-    window.setInterval(function() {
-            enable_mouse_move_callback = true;
-        },
-        ms_before_enable
-    );
-    $(this).mousemove(function(e) {
-        if (enable_mouse_move_callback) {
-            _publish_mouse_event(e, false);
-            enable_mouse_move_callback = false;
-        }
-    })
-    $(this).click(function(e) {
-        _publish_mouse_event(e, true);
-    })
-    $(this).keypress(function(e) {
-        _publish_key_press(e);
-    });
-});
 
 function _publish_key_press(event) {
     var out_dict = { data: event.code }
