@@ -1,4 +1,4 @@
-function setup_cycle_through_displays() {
+function setup_cycle_through_displays(start_idx = 0) {
     $("#top").html(
         '<input type="button" value="Fade in next" id="my-button"></input>'
     )
@@ -13,19 +13,21 @@ function setup_cycle_through_displays() {
         function() {
             multiple_choice_prompt(
                 "How are you?", ["good", "okay", "bad"],
-                _log_value
+                _log_value, [],
+                2
             )
         },
         function() {
-            make_text_entry(
+            text_entry_prompt(
                 "What's your name?",
                 "Done",
-                _log_value
+                _log_value, ['Your name'],
+                3
             )
         }
     ];
-    var idx = 0
-        //displays[idx]();
+    var idx = start_idx
+    displays[idx]();
     $("#my-button").click(function() {
         var num_displays = displays.length;
         idx = (idx + 1) % displays.length;
@@ -38,17 +40,43 @@ function show_black_screen() {
     _show_element_and_hide_siblings(parent_selector)
 }
 
-function make_text_entry(content, button, callback_fn) {
+function text_entry_prompt(
+    content,
+    button,
+    callback_fn,
+    args = [],
+    seconds_to_delay_showing_input = 0
+) {
 
-    var parent_selector = "#col-1"
-    var content_selector = "#col-1-content"
+    if (args.length > 1) {
+        alert("text_entry_prompt only accepts one arg, placeholder text");
+    }
+    var placeholder_text = "Touch here";
+    if (args.length === 1) {
+        placeholder_text = args[0];
+    }
 
-    var display_html = ''
-    display_html += _prepare_content(content)
-    display_html += '<input type="text"> <br>'
-    display_html += _make_buttons(button, false)
+    var parent_selector = "#col-1";
+    var content_selector = "#col-1-content";
+    var input_selector = "#col-1-input";
+
+    var display_html = _prepare_content(content)
+    var input_html = '<input type="text" placeholder="' + placeholder_text + '"> <br>'
+    input_html += _make_buttons(button, false)
 
     $(content_selector).html(display_html)
+    $(input_selector).html(input_html)
+
+    _prompt(
+        parent_selector,
+        input_selector,
+        _get_text_value,
+        input_selector,
+        callback_fn,
+        seconds_to_delay_showing_input,
+    );
+}
+
 
     _prompt(
         parent_selector,
@@ -59,14 +87,24 @@ function make_text_entry(content, button, callback_fn) {
     );
 }
 
-function multiple_choice_prompt(content, buttons, callback_fn) {
+function multiple_choice_prompt(
+    content,
+    buttons,
+    callback_fn,
+    args = [],
+    seconds_to_delay_showing_input = 0
+) {
+    if (args.length > 0) {
+        alert("No args accepted to multiple choice");
+    }
 
     _two_col_prompt(
         content,
         _make_buttons(buttons),
         _get_pushed_button_value,
         undefined,
-        callback_fn
+        callback_fn,
+        seconds_to_delay_showing_input
     );
 }
 
@@ -75,7 +113,8 @@ function _two_col_prompt(
     input,
     get_value_fn,
     selector_to_element_of_interest,
-    callback_fn
+    callback_fn,
+    seconds_to_delay_showing_input
 ) {
 
     var parent_selector = "#col-2";
@@ -90,7 +129,8 @@ function _two_col_prompt(
         input_selector,
         get_value_fn,
         selector_to_element_of_interest,
-        callback_fn
+        callback_fn,
+        seconds_to_delay_showing_input
     );
 }
 
@@ -127,16 +167,23 @@ function _prompt(
     get_value_fn,
     selector_to_element_of_interest,
     callback_fn,
+    seconds_to_delay_showing_input = 0
 ) {
 
-    _show_element_and_hide_siblings(parent_selector)
+    $(input_selector).children("input:button").prop("disabled", true);
+    sleep(seconds_to_delay_showing_input).then(function() {
+        $(input_selector).children("input:button").prop("disabled", false)
+    });
+
+    _show_element_and_hide_siblings(parent_selector);
 
     $(input_selector).children("input:button").click(function() {
+
+        var value = get_value_fn(this, selector_to_element_of_interest);
 
         // Make sure that only one button can be pushed and that it can only be pushed once
         $(input_selector).children("input:button").prop("disabled", "true");
 
-        var value = get_value_fn(this, selector_to_element_of_interest);
         if (typeof callback_fn !== "undefined") {
             callback_fn(value);
         }
@@ -195,6 +242,14 @@ function _get_text_value(_, parent_selector) {
     return text_inputs[0].value
 }
 
+function _is_valid_text_entry(entry) {
+    return entry.length > 0
+}
+
 function _log_value(value) {
     console.log(value)
+}
+
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

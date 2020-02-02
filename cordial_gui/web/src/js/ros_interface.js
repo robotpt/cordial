@@ -112,10 +112,10 @@ function make_display(display_msg) {
             show_black_screen();
             break;
         case 'multiple choice':
-            multiple_choice_prompt(content, buttons, callback_fn);
+            multiple_choice_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
         case 'text entry':
-            make_text_entry(content, buttons, callback_fn);
+            text_entry_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
         default:
             is_valid_display_type = false;
