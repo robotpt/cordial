@@ -83,8 +83,8 @@ class AwsPollyClient:
             print("Could not stream audio")
             sys.exit(-1)
 
-        contents, samplerate = soundfile.read(out_file_path_ogg)
-        soundfile.write(out_file_path_wav, contents, samplerate)
+        contents, sample_rate = soundfile.read(out_file_path_ogg)
+        soundfile.write(out_file_path_wav, contents, sample_rate)
 
         os.remove(out_file_path_ogg)
 
