@@ -39,6 +39,9 @@ class BehaviorSchedule:
             self.Type.ACTIONS,
         )
 
+    def get_last_start_time(self):
+        return self._behavior_timings[-1]["start"]
+
     @staticmethod
     def _filter_behaviors_by_type(behavior_timings, desired_type):
         return filter(
@@ -71,12 +74,14 @@ if __name__ == '__main__':
     behavior_timings_ = [
         {'start': 0.006, 'char_end': 2, 'char_start': 0, 'type': 'word', 'value': 'Hi'},
         {'start': 0.006, 'type': 'viseme', 'id': 'VELAR_GLOTTAL'},
-        {'start': 0.104, 'type': 'viseme', 'id': 'OPEN_FRONT_VOWEL'}, {'start': 0.467, 'type': 'viseme', 'id': 'IDLE'},
+        {'start': 0.104, 'type': 'viseme', 'id': 'OPEN_FRONT_VOWEL'},
+        {'start': 0.467, 'type': 'viseme', 'id': 'IDLE'},
         {'start': 0.66, 'char_end': 9, 'char_start': 4, 'type': 'word', 'value': 'there'},
         {'start': 0.66, 'type': 'viseme', 'id': 'INTERDENTAL'},
         {'start': 0.67, 'args': [], 'type': 'action', 'id': 'nod'},
         {'start': 0.704, 'type': 'viseme', 'id': 'OPEN_FRONT_VOWEL'},
-        {'start': 0.885, 'type': 'viseme', 'id': 'POSTALVEOLAR'}, {'start': 1.057, 'type': 'viseme', 'id': 'IDLE'}
+        {'start': 0.885, 'type': 'viseme', 'id': 'POSTALVEOLAR'},
+        {'start': 1.057, 'type': 'viseme', 'id': 'IDLE'},
     ]
 
     bs = BehaviorSchedule(behavior_timings_)
@@ -84,3 +89,4 @@ if __name__ == '__main__':
     print(bs.get_visemes(0.05))
     print(bs.get_words())
     print(bs.get_actions())
+    print(bs.get_last_start_time())

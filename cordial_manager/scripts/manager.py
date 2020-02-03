@@ -61,6 +61,7 @@ class CordialManager:
 
         content = request.display.content
         request.display.content, file_path, behavior_schedule = self._aws_client.run(content)
+        request.display.buttons_delay_seconds = behavior_schedule.get_last_start_time()
 
         self._say(file_path, behavior_schedule)
         try:
