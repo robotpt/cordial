@@ -106,7 +106,6 @@ function make_display(display_msg) {
     var buttons_delay_seconds = display_msg.buttons_delay_seconds
     var callback_fn = publish_user_response
 
-    var is_valid_display_type = true;
     switch (display_type) {
         case 'black':
             show_black_screen();
@@ -117,8 +116,13 @@ function make_display(display_msg) {
         case 'text entry':
             text_entry_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
+        case 'time entry':
+            time_entry_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
+            break;
+        case 'slider':
+            slider_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
+            break;
         default:
-            is_valid_display_type = false;
             var message = "'" + display_type + "' not implemented";
             console.log(message);
             alert(message);
