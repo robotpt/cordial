@@ -24,8 +24,39 @@ class ExampleGuiClient:
             request.display.type = "text entry"
             request.display.content = "What is your name?"
             request.display.buttons = ["Is my name"]
-            request.display.args = ['']
-            request.display.buttons_delay_seconds = 2.0
+            request.display.args = ['Your name']
+
+            return self._client(request)
+
+        except rospy.ServiceException, e:
+            print("Service call failed: %s" % e)
+
+    def ask_slider_entry(self):
+
+        rospy.wait_for_service(self._ASK_SERVICE)
+
+        try:
+            request = AskRequest()
+            request.display.type = "slider"
+            request.display.content = "How many steps would you like to walk?"
+            request.display.buttons = ["steps"]
+            request.display.args = ["100", "500", "50", "200"]
+
+            return self._client(request)
+
+        except rospy.ServiceException, e:
+            print("Service call failed: %s" % e)
+
+    def ask_time_entry(self):
+
+        rospy.wait_for_service(self._ASK_SERVICE)
+
+        try:
+            request = AskRequest()
+            request.display.type = "time entry"
+            request.display.content = "When would you like to walk?"
+            request.display.buttons = ["is when"]
+            request.display.args = ["30", "12:30"]
 
             return self._client(request)
 
@@ -39,10 +70,9 @@ class ExampleGuiClient:
         try:
             request = AskRequest()
             request.display.type = "multiple choice"
-            request.display.content = "How are you?"
+            request.display.content = "How are you doing today? Is everything good?"
             request.display.buttons = ["Great", "Okay", "Bad"]
-            request.display.args = ['']
-            request.display.buttons_delay_seconds = 2.0
+            request.display.args = []
 
             return self._client(request)
 
@@ -54,11 +84,13 @@ if __name__ == "__main__":
 
     gui_client = ExampleGuiClient()
 
+    entry_callbacks = [
+        gui_client.ask_text_entry,
+        gui_client.ask_multiple_choice,
+        gui_client.ask_slider_entry,
+        gui_client.ask_time_entry,
+    ]
     while True:
-
-        response = gui_client.ask_text_entry()
-        rospy.loginfo("I heard '%s'" % response)
-
-        response = gui_client.ask_multiple_choice()
-        rospy.loginfo("I heard '%s'" % response)
+        for cb in entry_callbacks:
+            cb()
         rospy.sleep(5)
