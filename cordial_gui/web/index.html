@@ -48,24 +48,11 @@
         <script src="libs/js/jquery.js" type="text/javascript"></script>
         <script src="libs/js/popper.min.js" type="text/javascript"></script>
         <script src="libs/js/bootstrap.min.js" type="text/javascript"></script>
-        <script type="text/javascript" src="/libs/js/jquery.js"></script>
-        <script type="text/javascript" src="/libs/js/wickedpicker.js"></script>
+        <script src="libs/js/wickedpicker.js" type="text/javascript"></script>
 
         <!-- Our source files-->
         <script src="src/js/display_maker.js" type="text/javascript"></script>
         <script src="src/js/ros_interface.js" type="text/javascript"></script>
-
-        <script>
-            var IS_DEBUG_DISPLAY = false
-            var ROS_MASTER_URI = ''
-
-            if (!IS_DEBUG_DISPLAY) {
-                rosInit(ROS_MASTER_URI);
-            } else {
-                setup_cycle_through_displays(1);
-            }
-        </script>
-
-</body>
+        <script src="src/js/run.js" type="text/javascript"></script>
 
 </html>
