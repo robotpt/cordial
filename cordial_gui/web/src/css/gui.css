@@ -33,9 +33,11 @@ body {
 }
 
 input {
-    border-radius: 50vh;
+    border-radius: 4vh;
     padding: 2vh 5vw 2vh 5vw;
     margin: 2vh;
+    text-align: center;
+    white-space: normal;
 }
 
 input.timepicker {
@@ -51,6 +53,11 @@ input.timepicker {
 #col-1,
 #col-2 {
     display: none;
+}
+
+#col-2-left p {
+    padding-left: 10%;
+    text-align: justify;
 }
 
 #col-2-right {
