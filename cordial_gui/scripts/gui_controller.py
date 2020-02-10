@@ -3,7 +3,7 @@
 import datetime
 import rospy
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Empty
 from cordial_gui.msg import Display, MouseEvent
 from cordial_gui.srv import Ask, AskResponse
 
@@ -16,6 +16,7 @@ class GuiController:
     _KEYPRESS_EVENT_TOPIC = "cordial/gui/event/keypress"
     _USER_RESPONSE_TOPIC = "cordial/gui/user_response"
     _DISPLAY_TOPIC = "cordial/gui/display"
+    _USER_PROMPTED_TOPIC = "cordial/gui/prompt"
     _ASK_SERVICE = "cordial/gui/ask"
 
     class State:
@@ -46,6 +47,7 @@ class GuiController:
         rospy.Subscriber(self._KEYPRESS_EVENT_TOPIC, String, self._set_last_active_datetime)
 
         self._display_publisher = rospy.Publisher(self._DISPLAY_TOPIC, Display, queue_size=1)
+        self._prompt_publisher = rospy.Publisher(self._USER_PROMPTED_TOPIC, Empty, queue_size=1)
         self._prompt_server = rospy.Service(self._ASK_SERVICE, Ask, self._ask)
         self._timeout_message = timeout_message
 
@@ -164,6 +166,10 @@ class GuiController:
         self._last_active_time = datetime.datetime.now()
         rospy.loginfo("User activity detected - updating last active time")
 
+        if self._gui_state == self.State.BLACK_SCREEN:
+            rospy.loginfo("Publishing to prompt topic")
+            self._prompt_publisher.publish()
+
 
 class TimeoutException(rospy.ROSException):
     pass
@@ -174,7 +180,7 @@ if __name__ == '__main__':
     GuiController(
         seconds_before_timeout=rospy.get_param(
             'cordial/gui/seconds_before_timeout',
-            5,
+            60,
         ),
         timeout_message=rospy.get_param(
             'cordial/gui/timeout_msg',
