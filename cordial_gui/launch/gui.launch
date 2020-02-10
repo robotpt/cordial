@@ -8,7 +8,7 @@
         </include>
     </group>
 
-    <param name="cordial/gui/seconds_before_timeout" type="double" value="5"/>
+    <param name="cordial/gui/seconds_before_timeout" type="double" value="30"/>
     <param name="cordial/gui/timeout_msg" type="str" value="--timeout--"/>
     <param name="cordial/gui/seconds_with_no_prompt_before_display_goes_off" type="double" value="1"/>
     <param name="cordial/gui/state_manager_seconds_between_calls" type="double" value="0.1"/>
