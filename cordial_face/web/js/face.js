@@ -190,12 +190,12 @@ function startFace(
 
           ros.on('error', function(error) {
               console.log('Error connecting to websocket server: ', error);
-              reload_page_to_retry_connecting();
+              reload_page_to_retry_connecting(2);
           });
 
           ros.on('close', function() {
               console.log('Connection to websocket server closed.');
-              reload_page_to_retry_connecting();
+              reload_page_to_retry_connecting(2);
           });
 
           // Subscribing to a Topic
@@ -213,14 +213,16 @@ function startFace(
           two.bind('update', animate).play();
 }
 
-function reload_page_to_retry_connecting(wait_seconds=2) {
+function reload_page_to_retry_connecting(wait_seconds) {
     sleep(wait_seconds).then( function () {
         document.location.reload(true);
     });
 }
 
 function sleep(seconds) {
-  return new Promise(resolve => setTimeout(resolve, seconds*1000));
+  return new Promise( function (resolve) {
+      setTimeout(resolve, seconds*1000);
+  });
 }
 
 /**
