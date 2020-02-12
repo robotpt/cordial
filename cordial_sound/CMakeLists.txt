@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cordial_sound)
 
-catkin_python_setup()
-
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   audio_common_msgs
   message_generation
 )
+
+catkin_python_setup()
 
 add_message_files(
   FILES
