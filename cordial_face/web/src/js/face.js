@@ -198,7 +198,7 @@ function startFace(
               reload_page_to_retry_connecting(2);
           });
 
-          // Subscribing to a Topic
+          // Setup ROS network
           // ----------------------
 
           listener = new ROSLIB.Topic({
@@ -207,6 +207,18 @@ function startFace(
               messageType : 'cordial_face/FaceRequest'
           });
           listener.subscribe(get_goal);
+
+          is_connected_client = new ROSLIB.Service({
+            ros: ros,
+            name: '/cordial/face/is_connected',
+            serviceType: 'std_srvs/Trigger'
+          });
+          is_connected_client.advertise(function (_, response) {
+            console.log('is_connected_client received service request');
+            response['success'] = true;
+            response['message'] = 'Face is connected';
+            return true;
+          });
 
           zeroFace(5)
           //finally, start the animation loop.
