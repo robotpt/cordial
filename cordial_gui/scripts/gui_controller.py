@@ -194,7 +194,7 @@ if __name__ == '__main__':
         ),
         state_manager_seconds_between_calls=rospy.get_param(
             'cordial/gui/state_manager_seconds_between_calls',
-            0.01,
+            0.1,
         )
     )
     rospy.spin()
