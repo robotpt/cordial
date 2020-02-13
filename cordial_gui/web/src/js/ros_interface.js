@@ -67,6 +67,18 @@ function setupRosNetwork() {
         queue_size: 1,
         messageType: 'std_msgs/String'
     });
+
+    is_connected_client = new ROSLIB.Service({
+        ros : ros,
+        name : '/cordial/gui/is_connected',
+        serviceType : 'std_srvs/Trigger'
+    });
+    is_connected_client.advertise(function(_, response) {
+        console.log('is_connected_client received service request');
+        response['success'] = true;
+        response['message'] = 'GUI is connected';
+        return true;
+    });
 }
 
 function setup_mouse_and_keypress_event_publishers() {
