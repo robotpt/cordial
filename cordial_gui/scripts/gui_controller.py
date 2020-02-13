@@ -122,6 +122,8 @@ class GuiController:
         finally:
             self._last_response_time = datetime.datetime.now()
 
+        rospy.sleep(0.5)  # Allow for fading to occur with this delay
+
         ask_response = AskResponse()
         ask_response.data = response
         return ask_response
@@ -192,7 +194,7 @@ if __name__ == '__main__':
         ),
         state_manager_seconds_between_calls=rospy.get_param(
             'cordial/gui/state_manager_seconds_between_calls',
-            0.1,
+            0.01,
         )
     )
     rospy.spin()

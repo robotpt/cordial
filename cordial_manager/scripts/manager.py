@@ -14,10 +14,15 @@ class CordialManager:
 
     _NODE_NAME = "cordial_manager"
 
+    _SECONDS_BEFORE_TIMEOUT = 15
+
     _SAY_TOPIC = "cordial/say"
     _PLAY_WAV_FILE_TOPIC = "cordial/sound/play/file_path/wav"
+
+    _IS_FACE_CONNECTED_SERVICE = "cordial/face/is_connected"
     _PLAY_FACE_TOPIC = "cordial/face/play"
 
+    _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
     _ASK_ON_GUI_SERVICE = "cordial/gui/ask"
 
@@ -57,7 +62,9 @@ class CordialManager:
 
     def _say_and_ask_on_gui(self, request):
 
-        rospy.wait_for_service(self._ASK_ON_GUI_SERVICE)
+        rospy.loginfo("Checking that GUI is connected to ROS websocket")
+        rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
+        rospy.loginfo("Done, GUI is connected to ROS websocket")
 
         content = request.display.content
         request.display.content, file_path, behavior_schedule = self._aws_client.run(content)
@@ -70,6 +77,10 @@ class CordialManager:
             print("Service call failed: %s" % e)
 
     def say(self, text):
+
+        rospy.loginfo("Checking that face is connected to ROS websocket")
+        rospy.wait_for_service(self._IS_FACE_CONNECTED_SERVICE)
+        rospy.loginfo("Done, face is connected to ROS websocket")
 
         _, file_path, behavior_schedule = self._aws_client.run(text)
 
