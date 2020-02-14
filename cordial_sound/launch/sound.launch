@@ -1,13 +1,12 @@
 <launch>
 
-    <param name="cordial/sound/wav/header_length" type="int" value="24"/>
-    <param name="cordial/sound/frames_per_buffer" type="int" value="512"/>
+    <rosparam file="$(find cordial_sound)/config/config.yaml" command="load" />
 
     <node pkg="cordial_sound" type="wav_file_publisher.py" name="wav_file_publisher" output="screen"/>
 
     <arg name="is_launch_sound_listener" default="true" />
     <group if="$(arg is_launch_sound_listener)">
-        <node pkg="cordial_sound" type="sound_listener.py" name="sound_listener" respawn="true" output="screen"/>
+        <include file="$(find cordial_sound)/launch/sound_listener.launch" />
     </group>
 
 </launch>

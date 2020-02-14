@@ -1,0 +1,6 @@
+<launch>
+
+    <rosparam file="$(find cordial_sound)/config/config.yaml" command="load" />
+    <node pkg="cordial_sound" type="sound_listener.py" name="sound_listener" respawn="true" output="screen"/>
+
+</launch>

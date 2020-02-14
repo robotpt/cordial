@@ -1,0 +1,5 @@
+cordial:
+  sound:
+    wav:
+      header_length: 24
+    frames_per_buffer: 512
