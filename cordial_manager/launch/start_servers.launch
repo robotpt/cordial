@@ -1,7 +1,7 @@
 <launch>
 
-	<arg name="face_port" value="8080"/>
-	<arg name="gui_port" value="8081"/>
+    <arg name="face_port" default="8080"/>
+    <arg name="gui_port" default="8081"/>
 
     <include file="$(find cordial_face)/launch/face_server.launch">
         <arg name="port" value="$(arg face_port)" />

@@ -1,0 +1,10 @@
+aws:
+  region_name: "us-west-1"
+cordial:
+  speech:
+    aws:
+      voice_name: "Ivy"
+    viseme:
+      play_speed: 10.0
+      min_durations_in_seconds: 0.05
+      publish_delay_in_seconds: 0.1
