@@ -18,6 +18,7 @@ class GuiController:
     _DISPLAY_TOPIC = "cordial/gui/display"
     _USER_PROMPTED_TOPIC = "cordial/gui/prompt"
     _ASK_SERVICE = "cordial/gui/ask"
+    _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
 
     class State:
         def __init__(self):
@@ -51,6 +52,7 @@ class GuiController:
         self._prompt_server = rospy.Service(self._ASK_SERVICE, Ask, self._ask)
         self._timeout_message = timeout_message
 
+        rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
         rospy.timer.Timer(
             rospy.Duration(
                 nsecs=int(
