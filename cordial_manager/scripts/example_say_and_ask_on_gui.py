@@ -93,5 +93,4 @@ if __name__ == "__main__":
     while True:
         for cb in entry_callbacks:
             cb()
-            rospy.sleep(.5)
         rospy.sleep(5)

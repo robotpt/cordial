@@ -72,7 +72,9 @@ class CordialManager:
 
         self._say(file_path, behavior_schedule)
         try:
-            return self._gui_client(request)
+            response = self._gui_client(request)
+            rospy.sleep(0.5)  # delay for stability, otherwise the gui may jump to the next question
+            return response
         except rospy.ServiceException, e:
             print("Service call failed: %s" % e)
 
