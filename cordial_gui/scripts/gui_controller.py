@@ -14,6 +14,7 @@ class GuiController:
 
     _MOUSE_EVENT_TOPIC = "cordial/gui/event/mouse"
     _KEYPRESS_EVENT_TOPIC = "cordial/gui/event/keypress"
+    _NEW_SERVER_EVENT_TOPIC = "cordial/gui/event/new_server"
     _USER_RESPONSE_TOPIC = "cordial/gui/user_response"
     _DISPLAY_TOPIC = "cordial/gui/display"
     _USER_PROMPTED_TOPIC = "cordial/gui/prompt"
@@ -46,6 +47,7 @@ class GuiController:
         rospy.init_node(self._NODE_NAME)
         rospy.Subscriber(self._MOUSE_EVENT_TOPIC, MouseEvent, self._set_last_active_datetime)
         rospy.Subscriber(self._KEYPRESS_EVENT_TOPIC, String, self._set_last_active_datetime)
+        rospy.Subscriber(self._NEW_SERVER_EVENT_TOPIC, Empty, self._show_black_screen_cb)
 
         self._display_publisher = rospy.Publisher(self._DISPLAY_TOPIC, Display, queue_size=1)
         self._prompt_publisher = rospy.Publisher(self._USER_PROMPTED_TOPIC, Empty, queue_size=1)
@@ -84,7 +86,6 @@ class GuiController:
             The state gets set to WAITING_FOR_USER_RESPONSE in the _ask function, which is 
             called by a service
             """
-            pass
         else:
             raise NotImplementedError("No rule on handling state '{}'".format(self._gui_state))
 
@@ -93,6 +94,9 @@ class GuiController:
             return False
         seconds_since_response = (datetime.datetime.now() - self._last_response_time).seconds
         return seconds_since_response > self._seconds_with_no_prompt_before_display_goes_off
+
+    def _show_black_screen_cb(self, _):
+        self._show_black_screen()
 
     def _show_black_screen(self):
 
@@ -152,6 +156,7 @@ class GuiController:
                     not rospy.core.is_shutdown()
                     and wfm.msg is None
                     and (datetime.datetime.now() - self._last_active_time).seconds < self._seconds_before_timeout
+                    and self._gui_state == self.State.WAITING_FOR_USER_RESPONSE
             ):
                 rospy.rostime.wallsleep(0.01)
         finally:
@@ -196,7 +201,7 @@ if __name__ == '__main__':
         ),
         state_manager_seconds_between_calls=rospy.get_param(
             'cordial/gui/state_manager_seconds_between_calls',
-            0.1,
+            0.25,
         )
     )
     rospy.spin()

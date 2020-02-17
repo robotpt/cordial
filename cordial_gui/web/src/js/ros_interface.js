@@ -79,6 +79,14 @@ function setupRosNetwork() {
         response['message'] = 'GUI is connected';
         return true;
     });
+
+    is_started_publisher = new ROSLIB.Topic({
+        ros: ros,
+        name: 'cordial/gui/event/new_server',
+        queue_size: 1,
+        messageType: 'std_msgs/Empty'
+    });
+    is_started_publisher.publish({})
 }
 
 function setup_mouse_and_keypress_event_publishers() {
