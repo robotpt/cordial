@@ -165,14 +165,14 @@ function _publish_mouse_event(event, is_click) {
 }
 
 function _get_normalized_mouse_position(event) {
-    var height = $(document).height()
-    var width = $(document).width()
-    var x_pos = _round_percentage(event.clientX / width)
-    var y_pos = _round_percentage(event.clientY / height)
+    var height = $(document).height();
+    var width = $(document).width();
+    var x_pos = Math.min(100, Math.max(0, _round_percentage(event.clientX / width)));
+    var y_pos = Math.min(100, Math.max(0, _round_percentage(event.clientY / height)));
     return {
         x: x_pos,
         y: y_pos
-    }
+    };
 }
 
 function _round_percentage(value) {
