@@ -1,6 +1,6 @@
-var IS_DEBUG_DISPLAY = false
-var ROS_MASTER_URI = ''
-var display_idx = 0
+var IS_DEBUG_DISPLAY = false;
+var ROS_MASTER_URI = '';
+var display_idx = 0;
 
 if (!IS_DEBUG_DISPLAY) {
     rosInit(ROS_MASTER_URI);

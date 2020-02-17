@@ -38,6 +38,7 @@ input {
     margin: 2vh;
     text-align: center;
     white-space: normal;
+    background: whitesmoke;
 }
 
 input.timepicker {
@@ -57,6 +58,7 @@ input.timepicker {
 
 #col-2-left p {
     padding-left: 10%;
+    padding-right: 5%;
     text-align: justify;
 }
 

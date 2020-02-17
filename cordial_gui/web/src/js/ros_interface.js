@@ -69,9 +69,9 @@ function setupRosNetwork() {
     });
 
     is_connected_client = new ROSLIB.Service({
-        ros : ros,
-        name : '/cordial/gui/is_connected',
-        serviceType : 'std_srvs/Trigger'
+        ros: ros,
+        name: '/cordial/gui/is_connected',
+        serviceType: 'std_srvs/Trigger'
     });
     is_connected_client.advertise(function(_, response) {
         console.log('is_connected_client received service request');
@@ -143,13 +143,13 @@ function make_display(display_msg) {
 }
 
 function publish_user_response(value) {
-    console.log("Publishing '" + value + "'")
-    user_response_publisher.publish({ data: value })
+    console.log("Publishing '" + value + "'");
+    user_response_publisher.publish({ data: value });
 }
 
 function _publish_key_press(event) {
-    var out_dict = { data: event.code }
-    keypress_event_publisher.publish(out_dict)
+    var out_dict = { data: event.code };
+    keypress_event_publisher.publish(out_dict);;
     console.log("Publishing keypress event: ", out_dict)
 }
 
@@ -161,7 +161,7 @@ function _publish_mouse_event(event, is_click) {
         is_click: is_click
     }
     mouse_event_publisher.publish(out_dict);
-    console.log("Publishing mouse event: ", out_dict)
+    console.log("Publishing mouse event: ", out_dict);
 }
 
 function _get_normalized_mouse_position(event) {
@@ -176,5 +176,5 @@ function _get_normalized_mouse_position(event) {
 }
 
 function _round_percentage(value) {
-    return Math.round(value * 100)
+    return Math.round(value * 100);
 }
