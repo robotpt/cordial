@@ -36,7 +36,7 @@ class CordialManager:
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
-        rospy.Subscriber(self._SAY_TOPIC, String, self._say_callback)
+        rospy.Subscriber(self._SAY_TOPIC, String, self._say_callback, queue_size=1)
 
         self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
         self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
