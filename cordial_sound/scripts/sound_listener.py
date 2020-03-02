@@ -12,6 +12,17 @@ FRAMES_PER_BUFFER = rospy.get_param(
 )
 
 
+def get_speaker_device_index():
+    p = pyaudio.PyAudio()
+    for i in range(p.get_device_count()):
+        device = p.get_device_info_by_index(i)
+        if device['name'] == 'sysdefault':
+	    return i
+
+
+SPEAKER_DEVICE_INDEX = get_speaker_device_index()
+
+
 def play_sound(data):
 
     rospy.loginfo("Sound received")
@@ -29,6 +40,7 @@ def play_sound(data):
             rate=data.framerate,
             output=True,
             frames_per_buffer=FRAMES_PER_BUFFER,
+            output_device_index=SPEAKER_DEVICE_INDEX,
         )
         stream.write(data.data)
         time.sleep(1)
