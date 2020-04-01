@@ -1,0 +1,274 @@
+{
+  "surprised": {
+    "action_units": ["1", "2", "5", "12", "17", "43"],
+    "keyframes": [
+      {
+        "pose": [0, 0, 0, 0, 0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.75, 1.0, 0.3, 1.0, 0.75, 0],
+        "time": 0.4
+      },
+      {
+        "pose": [0, 0, 0, 0, 0, 0],
+        "time": 0.8
+      }
+    ]
+  },
+  "close_eyes": {
+    "action_units": ["43", "1"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.85, 0.85],
+        "time": 0.5
+      },
+      {
+        "pose": [0.85, 0.85],
+        "time": 45
+      },
+      {
+        "pose": [0, 0],
+        "time": 47
+      }
+    ]
+  },
+  "stern": {
+    "action_units": ["1", "2", "4", "7", "10", "18", "20", "23"],
+    "keyframes": [
+      {
+        "pose": [0, 0, 0, 0, 0, 0, 0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.48, 1, 1, 0.34, 0.59, 1, 0.4, 0.61],
+        "time": 0.75
+      },
+      {
+        "pose": [0.48, 1, 1, 0.34, 0.59, 1, 0.4, 0.61],
+        "time": 1.5
+      },
+      {
+        "pose": [0, 0, 0, 0, 0, 0, 0, 0],
+        "time": 2.0
+      }
+    ]
+  },
+  "question_1": {
+    "action_units": ["2"],
+    "keyframes": [
+      {
+        "pose": [0],
+        "time": 0
+      },
+      {
+        "pose": [0.48],
+        "time": 0.75
+      },
+      {
+        "pose": [0],
+        "time": 1.75
+      }
+    ]
+  },
+  "question_2": {
+    "action_units": ["1", "2"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.59, 0.48],
+        "time": 0.75
+      },
+      {
+        "pose": [0, 0],
+        "time": 1.75
+      }
+    ]
+  },
+  "question_3": {
+    "action_units": ["1", "2"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.76, 0.63],
+        "time": 1.0
+      },
+      {
+        "pose": [0, 0],
+        "time": 2.0
+      }
+    ]
+  },
+  "left_brow_raise": {
+    "action_units": ["1l", "2l"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.5, 0.9],
+        "time": 0.75
+      },
+      {
+        "pose": [0, 0],
+        "time": 1.9
+      }
+    ]
+  },
+  "double_brow_raise": {
+    "action_units": ["1", "2"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.76, 0.9],
+        "time": 0.3
+      },
+      {
+        "pose": [0, 0],
+        "time": 0.6
+      },
+      {
+        "pose": [0.76, 0.9],
+        "time": 0.9
+      },
+      {
+        "pose": [0, 0],
+        "time": 1.2
+      }
+    ]
+  },
+  "loud":
+  {
+    "action_units": ["1", "2","5"],
+    "keyframes": [
+      {
+        "pose": [0, 0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.8, 0.6, 0.6],
+        "time": 0.2
+      },
+      {
+        "pose": [0, 0, 0],
+        "time": 1.5
+      }
+    ]
+  },
+  "quiet": {
+    "action_units": ["4", "1", "7"],
+    "keyframes": [
+      {
+        "pose": [0, 0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.8, 0.6, 0.6],
+        "time": 0.2
+      },
+      {
+        "pose": [0, 0, 0],
+        "time": 1.5
+      }
+    ]
+  },
+  "saucy": {
+    "action_units": ["1", "2", "7", "13", "18", "23"],
+    "keyframes": [
+      {
+        "pose": [0, 0, 0, 0, 0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.32, 0.68, 0.64, 1.0, 1.0, 1.0],
+        "time": 1.2
+      },
+      {
+        "pose": [0, 0, 0, 0, 0, 0],
+        "time": 2
+      }
+    ]
+  },
+  "breath": {
+    "action_units": ["1", "27"],
+    "keyframes": [
+      {
+        "pose": [0, 0],
+        "time": 0
+      },
+      {
+        "pose": [0.2, 0.8],
+        "time": 0.5
+      },
+      {
+        "pose": [0, 0],
+        "time": 1.2
+      }
+    ]
+  },
+  "happy": {
+    "action_units": ["12", "13"],
+    "keyframes": [
+      {
+        "pose": [0.5, 0.5],
+        "time": 0.2
+      },
+      {
+        "pose": [1, 1],
+        "time": 0.8
+      },
+      {
+        "pose": [0.5, 0.5],
+        "time": 1.5
+      },
+      {
+        "pose": [0, 0],
+        "time": 2
+      }
+    ]
+  },
+  "sad": {
+    "action_units": ["1", "4"],
+    "keyframes": [
+      {
+        "pose": [0.5, 0.5],
+        "time": 0.5
+      },
+      {
+        "pose": [0, 0],
+        "time": 1
+      }
+    ]
+  },
+  "angry": {
+    "action_units": ["4", "5", "7", "23"],
+    "keyframes": [
+      {
+        "pose": [1, 0.75, 1, 0.75],
+        "time": 0.5
+      },
+      {
+        "pose": [1, 1, 1, 1],
+        "time": 1.5
+      },
+      {
+        "pose": [0, 0, 0, 0],
+        "time": 2.5
+      }
+    ]
+  }
+}
