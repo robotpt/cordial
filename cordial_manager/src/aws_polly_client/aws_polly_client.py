@@ -247,7 +247,7 @@ class AwsPollyClient:
 
 if __name__ == '__main__':
 
-    text_to_say = "Hi*nod*, there."
+    text_to_say = "Hi*nod* there."
 
     client = AwsPollyClient()
     text, wav_file, behaviors = client.run(text_to_say)

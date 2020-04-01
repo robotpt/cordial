@@ -21,6 +21,7 @@ class CordialManager:
 
     _IS_FACE_CONNECTED_SERVICE = "cordial/face/is_connected"
     _PLAY_FACE_TOPIC = "cordial/face/play"
+    _PLAY_GESTURE_TOPIC = "cordial/gesture/play"
 
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
@@ -33,6 +34,7 @@ class CordialManager:
             viseme_play_speed,
             min_viseme_duration_in_seconds,
             delay_to_publish_visemes_in_seconds,
+            delay_to_publish_gestures_in_seconds=None,
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
@@ -40,6 +42,7 @@ class CordialManager:
 
         self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
         self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
+        self._gesture_publisher = rospy.Publisher(self._PLAY_GESTURE_TOPIC, String, queue_size=1)
 
         self._say_and_ask_server = rospy.Service(
             self._SAY_AND_ASK_ON_GUI_SERVICE,
@@ -55,7 +58,11 @@ class CordialManager:
 
         self._viseme_play_speed = viseme_play_speed
         self._min_viseme_duration_in_seconds = min_viseme_duration_in_seconds
+
         self._delay_to_publish_visemes_in_seconds = delay_to_publish_visemes_in_seconds
+        if delay_to_publish_gestures_in_seconds is None:
+            delay_to_publish_gestures_in_seconds = delay_to_publish_visemes_in_seconds
+        self._delay_to_publish_gestures_in_seconds = delay_to_publish_gestures_in_seconds
 
     def _say_callback(self, data):
         self.say(data.data)
@@ -92,9 +99,10 @@ class CordialManager:
 
         self._wav_file_publisher.publish(file_path)
         self._delay_publishing_visemes(
-            behavior_schedule.get_visemes(
-                min_duration_in_seconds=self._min_viseme_duration_in_seconds,
-            )
+            behavior_schedule.get_visemes(self._min_viseme_duration_in_seconds)
+        )
+        self._delay_publishing_gestures(
+            behavior_schedule.get_actions()
         )
 
     def _delay_publishing_visemes(self, visemes_to_play):
@@ -115,6 +123,25 @@ class CordialManager:
             times=map(lambda b: b["start"], visemes_to_play),
             viseme_ms=self._viseme_play_speed,
         )
+
+    def _delay_publishing_gestures(
+            self,
+            gestures,
+    ):
+
+        def get_gesture_callback_fn(gesture):
+            def callback():
+                self._gesture_publisher.publish(
+                    String(gesture)
+                )
+            return callback
+
+        for a in gestures:
+            threading.Timer(
+                self._delay_to_publish_gestures_in_seconds + a['start'],
+                get_gesture_callback_fn(a['id']),
+                ).start()
+
 
 
 if __name__ == '__main__':
