@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import rospy
 import rospkg
 
@@ -8,10 +7,12 @@ import os
 import json
 import threading
 
+from std_msgs.msg import String
 from cordial_face.msg import FaceRequest
 
 
 PLAY_FACE_TOPIC = "cordial/face/play"
+PLAY_GESTURE_TOPIC = "cordial/gesture/play"
 
 
 class FaceGesturePlayer:
@@ -20,14 +21,21 @@ class FaceGesturePlayer:
 
         rospy.init_node('face_expression_publisher')
         self._face_publisher = rospy.Publisher(PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
+        rospy.Subscriber(PLAY_GESTURE_TOPIC, String, self._play_expression_callback, queue_size=1)
 
         self._gestures = Gestures(expression_file_path)
+        self._timers = []
+
+    def _play_expression_callback(self, data):
+        expression = data.data
+        if self._gestures.is_expression(expression):
+            self.play_expression(expression)
+            rospy.loginfo("Playing face gesture '{}'".format(expression))
 
     def play_expression(self, expression):
 
         def get_expression_callback_fn(aus, au_degrees, au_ms):
             def callback():
-                rospy.loginfo(au_degrees)
                 face_request = FaceRequest(
                     aus=aus,
                     au_degrees=au_degrees,
@@ -41,11 +49,22 @@ class FaceGesturePlayer:
         timings = self._gestures.get_timings(expression, is_convert_to_ms=False)
         durations = self._gestures.get_durations(expression, is_convert_to_ms=True)
 
+        is_truncating_expression = False
+        while self._timers:
+            t = self._timers.pop()
+            if t.is_alive():
+                is_truncating_expression = True
+                t.cancel()
+        if is_truncating_expression:
+            rospy.loginfo("Expression cut short to start next expression")
+
         for i in range(self._gestures.get_num_keyframes(expression)):
-            threading.Timer(
+            t = threading.Timer(
                 timings[i],
                 get_expression_callback_fn(action_units, au_degrees=poses[i], au_ms=durations[i]),
-                ).start()
+                )
+            t.start()
+            self._timers.append(t)
 
     def get_expressions(self):
         return self._gestures.get_expressions()
@@ -102,23 +121,28 @@ class Gestures:
         return tuple(self._get_expression(expression)["action_units"])
 
 
-if __name__ == '__main__':
+def demo_expressions(expressions_file_path, play_expression=None):
 
-    r = rospkg.RosPack()
-    path = os.path.join(
-        r.get_path('cordial_face'),
-        'resources',
-        'expressions.json',
-    )
-
-    play_expression = None
-
-    p = FaceGesturePlayer(path)
-
+    p = FaceGesturePlayer(expressions_file_path)
     if play_expression is not None:
         p.play_expression(play_expression)
     else:
         for exp in p.get_expressions():
             print exp
             p.play_expression(exp)
-            rospy.sleep(3)
+            rospy.sleep(4)
+
+
+if __name__ == '__main__':
+
+    expressions_file_path_ = os.path.join(
+        rospkg.RosPack().get_path('cordial_face'),
+        'resources',
+        'expressions.json',
+    )
+
+    #demo(expressions_file_path_)
+
+    FaceGesturePlayer(expressions_file_path_)
+    rospy.spin()
+
