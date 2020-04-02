@@ -17,4 +17,6 @@
     </include>
     <include file="$(find cordial_gui)/launch/gui.launch" />
 
+    <node pkg="cordial_face" type="face_gesture_player.py" name="face_gesture_player" output="screen" />
+
 </launch>
