@@ -9,10 +9,7 @@ find_package(catkin REQUIRED
 
 add_message_files(
   FILES
-  FaceKeyframeRequest.msg
   FaceRequest.msg
-  Keyframe.msg
-  LookatRequest.msg
 )
 generate_messages(DEPENDENCIES geometry_msgs)
 catkin_package()
