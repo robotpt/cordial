@@ -24,6 +24,7 @@ class CordialManager:
     _PLAY_FACE_TOPIC = "cordial/face/play"
     _PLAY_GESTURE_TOPIC = "cordial/gesture/play"
     _IS_FACE_IDLE_TOPIC = "cordial/face/is_idle"
+    _IS_GO_TO_SLEEP_TOPIC = "cordial/sleep"
 
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
@@ -37,7 +38,6 @@ class CordialManager:
             min_viseme_duration_in_seconds,
             delay_to_publish_visemes_in_seconds,
             delay_to_publish_gestures_in_seconds=None,
-            is_stay_awake=False,
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
@@ -47,6 +47,8 @@ class CordialManager:
         self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
         self._gesture_publisher = rospy.Publisher(self._PLAY_GESTURE_TOPIC, String, queue_size=1)
         self._is_idle_publisher = rospy.Publisher(self._IS_FACE_IDLE_TOPIC, Bool, queue_size=1)
+
+        self._go_to_sleep_subscriber = rospy.Subscriber(self._IS_GO_TO_SLEEP_TOPIC, Bool, self._go_to_sleep_callback, queue_size=1)
 
         self._say_and_ask_server = rospy.Service(
             self._SAY_AND_ASK_ON_GUI_SERVICE,
@@ -68,27 +70,44 @@ class CordialManager:
             delay_to_publish_gestures_in_seconds = delay_to_publish_visemes_in_seconds
         self._delay_to_publish_gestures_in_seconds = delay_to_publish_gestures_in_seconds
 
-        self._is_stay_awake = is_stay_awake
-        self._is_awake = self._is_stay_awake
+        self._is_awake = True
+
+    def _go_to_sleep_callback(self, msg):
+        is_should_wakeup = not msg.data
+
+        if is_should_wakeup:
+            if self._is_awake:
+                rospy.loginfo("Already awake")
+            else:
+                rospy.loginfo("Waking up")
+                self._wake_face()
+        else:
+            if self._is_awake:
+                rospy.loginfo("Going to sleep")
+                self._sleep_face()
+            else:
+                rospy.loginfo("Already asleep")
 
     def _sleep_face(self):
         self._is_idle_publisher.publish(Bool(data=False))
         rospy.sleep(2)
         self._gesture_publisher.publish(String(data="close_eyes"))
+        self._is_awake = False
 
     def _wake_face(self):
         self._gesture_publisher.publish(String(data="open_eyes"))
         rospy.sleep(2)
         self._is_idle_publisher.publish(Bool(data=True))
+        self._is_awake = True
 
     def _say_callback(self, data):
         self.say(data.data)
 
     def _say_and_ask_on_gui(self, request):
 
-        rospy.loginfo("Checking that GUI is connected to ROS websocket")
+        rospy.logdebug("Checking that GUI is connected to ROS websocket")
         rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
-        rospy.loginfo("Done, GUI is connected to ROS websocket")
+        rospy.logdebug("Done, GUI is connected to ROS websocket")
 
         content = request.display.content
         request.display.content, file_path, behavior_schedule = self._aws_client.run(content)
@@ -104,15 +123,18 @@ class CordialManager:
 
     def say(self, text):
 
-        rospy.loginfo("Checking that face is connected to ROS websocket")
+        rospy.logdebug("Checking that face is connected to ROS websocket")
         rospy.wait_for_service(self._IS_FACE_CONNECTED_SERVICE)
-        rospy.loginfo("Done, face is connected to ROS websocket")
+        rospy.logdebug("Done, face is connected to ROS websocket")
 
         _, file_path, behavior_schedule = self._aws_client.run(text)
 
         self._say(file_path, behavior_schedule)
 
     def _say(self, file_path, behavior_schedule):
+
+        if not self._is_awake:
+            self._wake_face()
 
         self._wav_file_publisher.publish(file_path)
         self._delay_publishing_visemes(
@@ -158,7 +180,6 @@ class CordialManager:
                 self._delay_to_publish_gestures_in_seconds + a['start'],
                 get_gesture_callback_fn(a['id']),
                 ).start()
-
 
 
 if __name__ == '__main__':
