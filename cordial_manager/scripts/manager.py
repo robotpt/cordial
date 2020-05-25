@@ -6,6 +6,7 @@ import threading
 from aws_polly_client import AwsPollyClient
 
 from std_msgs.msg import String
+from std_msgs.msg import Bool
 from cordial_face.msg import FaceRequest
 from cordial_gui.srv import Ask
 
@@ -22,6 +23,7 @@ class CordialManager:
     _IS_FACE_CONNECTED_SERVICE = "cordial/face/is_connected"
     _PLAY_FACE_TOPIC = "cordial/face/play"
     _PLAY_GESTURE_TOPIC = "cordial/gesture/play"
+    _IS_FACE_IDLE_TOPIC = "cordial/face/is_idle"
 
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
@@ -35,6 +37,7 @@ class CordialManager:
             min_viseme_duration_in_seconds,
             delay_to_publish_visemes_in_seconds,
             delay_to_publish_gestures_in_seconds=None,
+            is_stay_awake=False,
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
@@ -43,6 +46,7 @@ class CordialManager:
         self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
         self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
         self._gesture_publisher = rospy.Publisher(self._PLAY_GESTURE_TOPIC, String, queue_size=1)
+        self._is_idle_publisher = rospy.Publisher(self._IS_FACE_IDLE_TOPIC, Bool, queue_size=1)
 
         self._say_and_ask_server = rospy.Service(
             self._SAY_AND_ASK_ON_GUI_SERVICE,
@@ -63,6 +67,19 @@ class CordialManager:
         if delay_to_publish_gestures_in_seconds is None:
             delay_to_publish_gestures_in_seconds = delay_to_publish_visemes_in_seconds
         self._delay_to_publish_gestures_in_seconds = delay_to_publish_gestures_in_seconds
+
+        self._is_stay_awake = is_stay_awake
+        self._is_awake = self._is_stay_awake
+
+    def _sleep_face(self):
+        self._is_idle_publisher.publish(Bool(data=False))
+        rospy.sleep(2)
+        self._gesture_publisher.publish(String(data="close_eyes"))
+
+    def _wake_face(self):
+        self._gesture_publisher.publish(String(data="open_eyes"))
+        rospy.sleep(2)
+        self._is_idle_publisher.publish(Bool(data=True))
 
     def _say_callback(self, data):
         self.say(data.data)
