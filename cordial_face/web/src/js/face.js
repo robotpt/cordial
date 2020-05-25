@@ -28,6 +28,7 @@ var windowHalfY = window.innerHeight / 2;
 var camera_depth = 550;
 
 // Idle behavior
+var isIdleEnabled = true;
 var last_blink;
 var last_glance;
 var looking;
@@ -218,6 +219,20 @@ function startFace(
             response['success'] = true;
             response['message'] = 'Face is connected';
             return true;
+          });
+
+          is_idle_subscriber = new ROSLIB.Topic({
+              ros : ros,
+              name : 'cordial/face/is_idle',
+              messageType : 'std_msgs/Bool',
+          });
+          is_idle_subscriber.subscribe( function(message) {
+            if (message.data !== isIdleEnabled) {
+              isIdleEnabled = message.data;
+              console.log(`Changing 'isIdleEnabled' to '${isIdleEnabled}'`);
+            } else {
+              console.log(`'isIdleEnabled' is already set to '${isIdleEnabled}'`);
+            }
           });
 
           zeroFace(5)
@@ -1052,7 +1067,11 @@ function blink(t){
 }
 
 function animate(){
-  if (typeof gui === "undefined" && new Date().getTime() > lockIdleUntil){
+  if (
+    typeof gui === "undefined" 
+    && new Date().getTime() > lockIdleUntil
+    && isIdleEnabled
+  ){
     doIdle();
   }
 
