@@ -162,14 +162,16 @@ function _publish_key_press(event) {
 }
 
 function _publish_mouse_event(event, is_click) {
-    var normalized_pos = _get_normalized_mouse_position(event);
-    var out_dict = {
-        percentage_width_x: normalized_pos["x"],
-        percentage_height_y: normalized_pos["y"],
-        is_click: is_click
+    if (is_click === true) {
+        var normalized_pos = _get_normalized_mouse_position(event);
+        var out_dict = {
+            percentage_width_x: normalized_pos["x"],
+            percentage_height_y: normalized_pos["y"],
+            is_click: is_click
+        }
+        mouse_event_publisher.publish(out_dict);
+        console.log("Publishing mouse event: ", out_dict);
     }
-    mouse_event_publisher.publish(out_dict);
-    console.log("Publishing mouse event: ", out_dict);
 }
 
 function _get_normalized_mouse_position(event) {
