@@ -128,9 +128,9 @@ def demo_expressions(expressions_file_path, play_expression=None):
         p.play_expression(play_expression)
     else:
         for exp in p.get_expressions():
-            print exp
+            print(exp)
             p.play_expression(exp)
-            rospy.sleep(4)
+            rospy.sleep(5)
 
 
 if __name__ == '__main__':
@@ -140,8 +140,8 @@ if __name__ == '__main__':
         'resources',
         'expressions.json',
     )
-
-    #demo(expressions_file_path_)
+    
+    #demo_expressions(expressions_file_path_)
 
     FaceGesturePlayer(expressions_file_path_)
     rospy.spin()
