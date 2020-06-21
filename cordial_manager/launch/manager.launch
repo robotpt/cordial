@@ -3,6 +3,7 @@
     <arg name="face_port" default="8080"/>
     <arg name="gui_port" default="8081"/>
     <arg name="is_launch_sound_listener" default="true" />
+    <arg name="is_launch_internet_speed_test" default="true" />
 
     <rosparam file="$(find cordial_manager)/config/config.yaml" command="load" />
 
@@ -18,5 +19,9 @@
     <include file="$(find cordial_gui)/launch/gui.launch" />
 
     <node pkg="cordial_face" type="face_gesture_player.py" name="face_gesture_player" output="screen" />
+
+    <group if="$(arg is_launch_internet_speed_test)">
+        <node pkg="cordial_tools" type="internet_speed_monitor.py" name="internet_speed_monitor" output="screen"/>
+    </group>
 
 </launch>
