@@ -77,7 +77,7 @@ class CordialManager:
 
         if is_should_wakeup:
             if self._is_awake:
-                rospy.loginfo("Already awake")
+                rospy.logdebug("Already awake")
             else:
                 rospy.loginfo("Waking up")
                 self._wake_face()
@@ -86,7 +86,7 @@ class CordialManager:
                 rospy.loginfo("Going to sleep")
                 self._sleep_face()
             else:
-                rospy.loginfo("Already asleep")
+                rospy.logdebug("Already asleep")
 
     def _sleep_face(self):
         self._is_idle_publisher.publish(Bool(data=False))
