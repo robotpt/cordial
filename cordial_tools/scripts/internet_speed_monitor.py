@@ -7,7 +7,7 @@ import time
 
 class RosInternetSpeedTester:
 
-    def __init__(self, minutes_before_check):
+    def __init__(self, minutes_before_check, is_run_test_on_init=True):
         self._speed_tester = speedtest.Speedtest()
 
         rospy.init_node('internet_speed_monitor')
@@ -15,10 +15,13 @@ class RosInternetSpeedTester:
             rospy.Duration(
                 secs=minutes_before_check * 60
             ),
-            callback=self.log_internet_speed,
+            callback=self._log_internet_speed_callback,
         )
 
-    def log_internet_speed(self, _):
+        if is_run_test_on_init:
+            self.log_internet_speed()
+
+    def log_internet_speed(self):
         start_time = time.time()
         rospy.loginfo(
             (
@@ -32,6 +35,9 @@ class RosInternetSpeedTester:
                 duration=time.time()-start_time
             )
         )
+
+    def _log_internet_speed_callback(self, _):
+        self.log_internet_speed()
 
     def download(self):
         """Download in Mbps"""
@@ -54,6 +60,9 @@ if __name__ == '__main__':
     RosInternetSpeedTester(
         minutes_before_check=rospy.get_param(
             'minutes_before_check_internet_speed', default=20
+        ),
+        is_run_test_on_init=rospy.get_param(
+            'is_run_internet_speed_test_on_init', default=True
         )
     )
     rospy.spin()
