@@ -2,6 +2,7 @@
 
 import rospy
 import threading
+import time
 
 from aws_polly_client import AwsPollyClient
 
@@ -9,10 +10,10 @@ from std_msgs.msg import String
 from std_msgs.msg import Bool
 from cordial_face.msg import FaceRequest
 from cordial_gui.srv import Ask
+from cordial_manager.srv import SetString, SetStringResponse
 
 
 class CordialManager:
-
     _NODE_NAME = "cordial_manager"
 
     _SECONDS_BEFORE_TIMEOUT = 15
@@ -48,13 +49,15 @@ class CordialManager:
         self._gesture_publisher = rospy.Publisher(self._PLAY_GESTURE_TOPIC, String, queue_size=1)
         self._is_idle_publisher = rospy.Publisher(self._IS_FACE_IDLE_TOPIC, Bool, queue_size=1)
 
-        self._go_to_sleep_subscriber = rospy.Subscriber(self._IS_GO_TO_SLEEP_TOPIC, Bool, self._go_to_sleep_callback, queue_size=1)
+        self._go_to_sleep_subscriber = rospy.Subscriber(self._IS_GO_TO_SLEEP_TOPIC, Bool, self._go_to_sleep_callback,
+                                                        queue_size=1)
 
         self._say_and_ask_server = rospy.Service(
             self._SAY_AND_ASK_ON_GUI_SERVICE,
             Ask,
             self._say_and_ask_on_gui
         )
+        self._play_sound_service = rospy.Service(self._SAY_TOPIC, SetString, self._say_service)
         self._gui_client = rospy.ServiceProxy(self._ASK_ON_GUI_SERVICE, Ask)
 
         self._aws_client = AwsPollyClient(
@@ -100,6 +103,20 @@ class CordialManager:
         self._is_idle_publisher.publish(Bool(data=True))
         self._is_awake = True
 
+    def _say_service(self, request):
+        rospy.loginfo("cordial/say service called")
+        response = SetStringResponse()
+        try:
+            _, file_path, behavior_schedule = self._aws_client.run(request.text)
+            self._say(file_path, behavior_schedule)
+            time.sleep(behavior_schedule.get_last_start_time())
+            response.succeeded = True
+        except rospy.ServiceException as e:
+            rospy.loginfo("Say service exception occurred")
+            response.succeeded = False
+            response.message = str(e)
+        return response
+
     def _say_callback(self, data):
         self.say(data.data)
 
@@ -118,7 +135,7 @@ class CordialManager:
             response = self._gui_client(request)
             rospy.sleep(0.5)  # delay for stability, otherwise the gui may jump to the next question
             return response
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             print("Service call failed: %s" % e)
 
     def say(self, text):
@@ -132,11 +149,11 @@ class CordialManager:
         self._say(file_path, behavior_schedule)
 
     def _say(self, file_path, behavior_schedule):
-
         if not self._is_awake:
             self._wake_face()
 
         self._wav_file_publisher.publish(file_path)
+
         self._delay_publishing_visemes(
             behavior_schedule.get_visemes(self._min_viseme_duration_in_seconds)
         )
@@ -173,17 +190,17 @@ class CordialManager:
                 self._gesture_publisher.publish(
                     String(gesture)
                 )
+
             return callback
 
         for a in gestures:
             threading.Timer(
                 self._delay_to_publish_gestures_in_seconds + a['start'],
                 get_gesture_callback_fn(a['id']),
-                ).start()
+            ).start()
 
 
 if __name__ == '__main__':
-
     CordialManager(
         aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
         aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),

@@ -28,7 +28,7 @@ class ExampleGuiClient:
 
             return self._client(request)
 
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             print("Service call failed: %s" % e)
 
     def ask_multiple_choice(self):
@@ -45,7 +45,7 @@ class ExampleGuiClient:
 
             return self._client(request)
 
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             print("Service call failed: %s" % e)
 
 
