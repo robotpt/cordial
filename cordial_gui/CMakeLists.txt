@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cordial_gui)
 
 find_package(catkin REQUIRED
+  actionlib_msgs
   message_generation
   rospy
 )
@@ -11,12 +12,20 @@ add_message_files(
   Display.msg
   MouseEvent.msg
 )
-add_service_files(
+
+add_action_files(
   FILES
-  Ask.srv
+  Ask.action
 )
-generate_messages()
-catkin_package()
+
+generate_messages(
+  DEPENDENCIES
+  actionlib_msgs
+)
+catkin_package(
+  CATKIN_DEPENDS
+  rospy
+)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
