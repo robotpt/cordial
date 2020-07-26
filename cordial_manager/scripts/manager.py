@@ -113,7 +113,7 @@ class CordialManager:
                 rospy.logdebug("Already asleep")
 
     def _sleep_face(self):
-        self._face_publisher.publish(Bool(data=False))
+        self._is_idle_publisher.publish(Bool(data=False))
         rospy.sleep(2)
         self._gesture_publisher.publish(String(data="close_eyes"))
         self._is_awake = False
@@ -121,7 +121,7 @@ class CordialManager:
     def _wake_face(self):
         self._gesture_publisher.publish(String(data="open_eyes"))
         rospy.sleep(2)
-        self._face_publisher.publish(Bool(data=True))
+        self._is_idle_publisher.publish(Bool(data=True))
         self._is_awake = True
 
     def _say_service(self, request):
