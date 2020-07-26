@@ -12,6 +12,7 @@
     <param name="cordial/gui/timeout_msg" type="str" value="--timeout--"/>
     <param name="cordial/gui/seconds_with_no_prompt_before_display_goes_off" type="double" value="1"/>
     <param name="cordial/gui/state_manager_seconds_between_calls" type="double" value="0.1"/>
+    <param name="cordial/gui/is_debug" type="bool" value="False"/>
 
     <node pkg="cordial_gui" type="gui_controller.py" name="gui_controller" output="screen" />
 
