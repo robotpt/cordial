@@ -229,9 +229,9 @@ function startFace(
           is_idle_subscriber.subscribe( function(message) {
             if (message.data !== isIdleEnabled) {
               isIdleEnabled = message.data;
-              console.log(`Changing 'isIdleEnabled' to '${isIdleEnabled}'`);
+              console.log("Changing 'isIdleEnabled' to '" + isIdleEnabled + "'");
             } else {
-              console.log(`'isIdleEnabled' is already set to '${isIdleEnabled}'`);
+              console.log("'isIdleEnabled' is already set to '" + isIdleEnabled + "'");
             }
           });
 

@@ -15,7 +15,8 @@ from cordial_manager.srv import SetString, SetStringResponse
 
 
 class CordialManager:
-    _NODE_NAME = "manager"
+
+    _NODE_NAME = "cordial_manager"
 
     _SECONDS_BEFORE_TIMEOUT = 15
 
@@ -79,13 +80,6 @@ class CordialManager:
             region=aws_region_name,
         )
 
-        self._publisher_dict = {
-            self._PLAY_WAV_FILE_TOPIC: self._wav_file_publisher,
-            self._PLAY_FACE_TOPIC: self._face_publisher,
-            self._PLAY_GESTURE_TOPIC: self._gesture_publisher,
-            self._IS_FACE_IDLE_TOPIC: self._is_idle_publisher
-        }
-
         self._viseme_play_speed = viseme_play_speed
         self._min_viseme_duration_in_seconds = min_viseme_duration_in_seconds
 
@@ -113,7 +107,7 @@ class CordialManager:
                 rospy.logdebug("Already asleep")
 
     def _sleep_face(self):
-        self._face_publisher.publish(Bool(data=False))
+        self._is_idle_publisher.publish(Bool(data=False))
         rospy.sleep(2)
         self._gesture_publisher.publish(String(data="close_eyes"))
         self._is_awake = False
@@ -121,7 +115,7 @@ class CordialManager:
     def _wake_face(self):
         self._gesture_publisher.publish(String(data="open_eyes"))
         rospy.sleep(2)
-        self._face_publisher.publish(Bool(data=True))
+        self._is_idle_publisher.publish(Bool(data=True))
         self._is_awake = True
 
     def _say_service(self, request):
@@ -205,6 +199,7 @@ class CordialManager:
         self._say(file_path, behavior_schedule)
 
     def _say(self, file_path, behavior_schedule):
+
         if not self._is_awake:
             self._wake_face()
 
@@ -243,18 +238,20 @@ class CordialManager:
 
         def get_gesture_callback_fn(gesture):
             def callback():
-                self._gesture_publisher.publish(String(gesture))
-
+                self._gesture_publisher.publish(
+                    String(gesture)
+                )
             return callback
 
         for a in gestures:
             threading.Timer(
                 self._delay_to_publish_gestures_in_seconds + a['start'],
                 get_gesture_callback_fn(a['id']),
-            ).start()
+                ).start()
 
 
 if __name__ == '__main__':
+
     CordialManager(
         aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
         aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),
