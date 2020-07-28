@@ -8,7 +8,7 @@ import json
 import threading
 
 from std_msgs.msg import String
-from cordial_face.msg import FaceRequest
+from cordial_msgs.msg import FaceRequest
 
 
 PLAY_FACE_TOPIC = "cordial/face/play"

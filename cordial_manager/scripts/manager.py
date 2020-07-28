@@ -8,10 +8,8 @@ import threading
 from aws_polly_client import AwsPollyClient
 
 from std_msgs.msg import Bool, String
-from cordial_face.msg import FaceRequest
-from cordial_gui.msg import AskAction, AskGoal, AskResult
-from cordial_manager.msg import AskOnGuiAction, AskOnGuiResult
-from cordial_manager.srv import SetString, SetStringResponse
+from cordial_msgs.msg import AskAction, AskGoal, AskResult, AskOnGuiAction, AskOnGuiResult, FaceRequest
+from cordial_msgs.srv import SetString, SetStringResponse
 
 
 class CordialManager:

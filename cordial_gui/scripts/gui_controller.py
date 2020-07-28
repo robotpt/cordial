@@ -5,7 +5,7 @@ import datetime
 import rospy
 
 from std_msgs.msg import String, Empty
-from cordial_gui.msg import AskAction, AskFeedback, AskResult, Display, MouseEvent
+from cordial_msgs.msg import AskAction, AskFeedback, AskResult, Display, MouseEvent
 
 
 class GuiController:

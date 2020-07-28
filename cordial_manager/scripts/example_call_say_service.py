@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from cordial_manager.srv import SetString, SetStringRequest
+from cordial_msgs.srv import SetString, SetStringRequest
 
 
 class ExampleSayClient:

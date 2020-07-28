@@ -4,7 +4,7 @@ import rospy
 import pyaudio
 import time
 
-from cordial_sound.msg import Sound
+from cordial_msgs.msg import Sound
 
 
 FRAMES_PER_BUFFER = rospy.get_param(
