@@ -1,0 +1,5 @@
+<launch>
+    <param name="cordial/manager/is_debug" type="bool" value="True"/>
+    <node pkg="cordial_manager" type="manager.py" name="manager"/>
+    <test test-name="test_cordial_manager_actions" pkg="cordial_manager" type="test_cordial_manager_actions.py"/>
+</launch>

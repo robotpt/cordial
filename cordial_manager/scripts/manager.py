@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
+import actionlib
 import rospy
-import threading
 import time
+import threading
 
 from aws_polly_client import AwsPollyClient
 
-from std_msgs.msg import String
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from cordial_face.msg import FaceRequest
-from cordial_gui.srv import Ask
+from cordial_gui.msg import AskAction, AskGoal, AskResult
+from cordial_manager.msg import AskOnGuiAction, AskOnGuiResult
 from cordial_manager.srv import SetString, SetStringResponse
 
 
 class CordialManager:
+
     _NODE_NAME = "cordial_manager"
 
     _SECONDS_BEFORE_TIMEOUT = 15
@@ -39,9 +41,17 @@ class CordialManager:
             min_viseme_duration_in_seconds,
             delay_to_publish_visemes_in_seconds,
             delay_to_publish_gestures_in_seconds=None,
+            is_debug=False
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
+
+        if type(is_debug) is not bool:
+            raise TypeError("is_debug must be either True or False")
+        self._is_debug = is_debug
+        if self._is_debug:
+            rospy.loginfo("Running in debug mode")
+
         rospy.Subscriber(self._SAY_TOPIC, String, self._say_callback, queue_size=1)
 
         self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
@@ -52,13 +62,18 @@ class CordialManager:
         self._go_to_sleep_subscriber = rospy.Subscriber(self._IS_GO_TO_SLEEP_TOPIC, Bool, self._go_to_sleep_callback,
                                                         queue_size=1)
 
-        self._say_and_ask_server = rospy.Service(
-            self._SAY_AND_ASK_ON_GUI_SERVICE,
-            Ask,
-            self._say_and_ask_on_gui
-        )
         self._play_sound_service = rospy.Service(self._SAY_TOPIC, SetString, self._say_service)
-        self._gui_client = rospy.ServiceProxy(self._ASK_ON_GUI_SERVICE, Ask)
+
+        self._say_and_ask_action_server = actionlib.SimpleActionServer(
+            self._SAY_AND_ASK_ON_GUI_SERVICE,
+            AskOnGuiAction,
+            execute_cb=self._say_and_ask_on_gui_action_cb,
+            auto_start=False
+        )
+        self._say_and_ask_action_server.register_preempt_callback(self._ask_preempt_callback)
+        self._say_and_ask_action_server.start()
+
+        self._gui_action_client = actionlib.SimpleActionClient(self._ASK_ON_GUI_SERVICE, AskAction)
 
         self._aws_client = AwsPollyClient(
             voice=aws_voice_name,
@@ -104,7 +119,7 @@ class CordialManager:
         self._is_awake = True
 
     def _say_service(self, request):
-        rospy.loginfo("cordial/say service called")
+        rospy.loginfo("cordial/say service called with text: {}".format(request.text))
         response = SetStringResponse()
         try:
             _, file_path, behavior_schedule = self._aws_client.run(request.text)
@@ -120,39 +135,77 @@ class CordialManager:
     def _say_callback(self, data):
         self.say(data.data)
 
-    def _say_and_ask_on_gui(self, request):
+    def _say_and_ask_on_gui_action_cb(self, goal):
 
-        rospy.logdebug("Checking that GUI is connected to ROS websocket")
-        rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
-        rospy.logdebug("Done, GUI is connected to ROS websocket")
+        if not self._is_debug:
+            rospy.logdebug("Checking that GUI is connected to ROS websocket")
+            rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
+            rospy.logdebug("Done, GUI is connected to ROS websocket")
 
-        content = request.display.content
-        request.display.content, file_path, behavior_schedule = self._aws_client.run(content)
-        request.display.buttons_delay_seconds = behavior_schedule.get_last_start_time()
+        result = AskOnGuiResult()
+
+        ask_goal = self._create_ask_goal(goal)
+        ask_goal.display.content, file_path, behavior_schedule = self._aws_client.run(goal.content)
+        ask_goal.display.buttons_delay_seconds = behavior_schedule.get_last_start_time()
 
         self._say(file_path, behavior_schedule)
-        try:
-            response = self._gui_client(request)
+
+        if not self._is_debug:
+            self._gui_action_client.wait_for_server()
+            self._gui_action_client.send_goal(ask_goal, feedback_cb=self._say_and_ask_action_server.publish_feedback)
+            self._gui_action_client.wait_for_result()
+
             rospy.sleep(0.5)  # delay for stability, otherwise the gui may jump to the next question
-            return response
-        except rospy.ServiceException as e:
-            print("Service call failed: %s" % e)
+
+            gui_response = self._gui_action_client.get_result()
+        else:
+            rospy.sleep(3)
+            rospy.loginfo("Returning debug response")
+            gui_response = AskResult(data="Debugging")
+
+        try:
+            result.data = gui_response.data
+        except AttributeError:
+            rospy.loginfo("GUI did not return any user input")
+
+        if not self._say_and_ask_action_server.is_preempt_requested():
+            rospy.loginfo("Setting goal as succeeded")
+            self._say_and_ask_action_server.set_succeeded(result)
+
+    def _create_ask_goal(self, goal):
+        ask_goal = AskGoal()
+        ask_goal.display.type = goal.type
+        ask_goal.display.buttons = goal.options
+        ask_goal.display.args = goal.args
+
+        return ask_goal
+
+    def _ask_preempt_callback(self):
+        rospy.loginfo("Preempt sent from engine to manager")
+        if not self._is_debug:
+            self._gui_action_client.cancel_goal()
+        rospy.loginfo("Setting goal as preempted")
+        self._say_and_ask_action_server.set_preempted()
 
     def say(self, text):
 
-        rospy.logdebug("Checking that face is connected to ROS websocket")
-        rospy.wait_for_service(self._IS_FACE_CONNECTED_SERVICE)
-        rospy.logdebug("Done, face is connected to ROS websocket")
+        if not self._is_debug:
+            rospy.logdebug("Checking that face is connected to ROS websocket")
+            rospy.wait_for_service(self._IS_FACE_CONNECTED_SERVICE)
+            rospy.logdebug("Done, face is connected to ROS websocket")
 
         _, file_path, behavior_schedule = self._aws_client.run(text)
 
         self._say(file_path, behavior_schedule)
 
     def _say(self, file_path, behavior_schedule):
+
         if not self._is_awake:
             self._wake_face()
 
-        self._wav_file_publisher.publish(file_path)
+        msg = String()
+        msg.data = file_path
+        self._wav_file_publisher.publish(msg)
 
         self._delay_publishing_visemes(
             behavior_schedule.get_visemes(self._min_viseme_duration_in_seconds)
@@ -164,9 +217,7 @@ class CordialManager:
     def _delay_publishing_visemes(self, visemes_to_play):
 
         def publish_visemes_callback_fn():
-            self._face_publisher.publish(
-                self._get_visemes_message(visemes_to_play)
-            )
+            self._face_publisher.publish(self._get_visemes_message(visemes_to_play))
 
         threading.Timer(
             self._delay_to_publish_visemes_in_seconds,
@@ -190,22 +241,23 @@ class CordialManager:
                 self._gesture_publisher.publish(
                     String(gesture)
                 )
-
             return callback
 
         for a in gestures:
             threading.Timer(
                 self._delay_to_publish_gestures_in_seconds + a['start'],
                 get_gesture_callback_fn(a['id']),
-            ).start()
+                ).start()
 
 
 if __name__ == '__main__':
+
     CordialManager(
         aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
         aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),
         viseme_play_speed=rospy.get_param('cordial/speech/viseme/play_speed', 10),
         min_viseme_duration_in_seconds=rospy.get_param('cordial/speech/viseme/min_duration_in_seconds', 0.05),
         delay_to_publish_visemes_in_seconds=rospy.get_param('cordial/speech/viseme/publish_delay_in_seconds', 0.1),
+        is_debug=rospy.get_param('cordial/manager/is_debug', False)
     )
     rospy.spin()

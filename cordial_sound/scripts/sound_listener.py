@@ -17,7 +17,7 @@ def get_speaker_device_index():
     for i in range(p.get_device_count()):
         device = p.get_device_info_by_index(i)
         if device['name'] == 'sysdefault':
-	    return i
+            return i
 
 
 SPEAKER_DEVICE_INDEX = get_speaker_device_index()

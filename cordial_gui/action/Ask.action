@@ -1,0 +1,8 @@
+#goal
+Display display
+---
+#result
+string data
+---
+#feedback
+float32 time_passed
