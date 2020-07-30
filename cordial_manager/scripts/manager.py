@@ -157,7 +157,8 @@ class CordialManager:
 
             gui_response = self._gui_action_client.get_result()
         else:
-            rospy.sleep(3)
+            seconds_to_sleep_for_tests = 3
+            rospy.sleep(seconds_to_sleep_for_tests)
             rospy.loginfo("Returning debug response")
             gui_response = AskResult(data="Debugging")
 

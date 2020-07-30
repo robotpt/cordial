@@ -178,7 +178,8 @@ class GuiController:
                 if s is not None:
                     s.unregister()
         else:
-            rospy.sleep(3)
+            seconds_to_sleep_for_tests = 3
+            rospy.sleep(seconds_to_sleep_for_tests)
             rospy.loginfo("Returning debug response")
             wfm.msg = String(data="Debugging")
 
