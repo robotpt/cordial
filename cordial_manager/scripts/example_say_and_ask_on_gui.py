@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from cordial_gui.srv import Ask, AskRequest
-from cordial_gui.msg import MouseEvent
+from cordial_msgs.srv import Ask, AskRequest
 
 
 class ExampleGuiClient:

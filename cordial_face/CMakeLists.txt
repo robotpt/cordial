@@ -2,16 +2,9 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cordial_face)
 
 find_package(catkin REQUIRED
-  message_generation
-  geometry_msgs
   rospy
 )
 
-add_message_files(
-  FILES
-  FaceRequest.msg
-)
-generate_messages(DEPENDENCIES geometry_msgs)
 catkin_package()
 
 include_directories(

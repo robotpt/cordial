@@ -5,7 +5,7 @@ import pyaudio
 import numpy as np
 import wave
 
-from cordial_sound.msg import Sound
+from cordial_msgs.msg import Sound
 from std_msgs.msg import String
 
 

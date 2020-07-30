@@ -8,10 +8,8 @@ import threading
 from aws_polly_client import AwsPollyClient
 
 from std_msgs.msg import Bool, String
-from cordial_face.msg import FaceRequest
-from cordial_gui.msg import AskAction, AskGoal, AskResult
-from cordial_manager.msg import AskOnGuiAction, AskOnGuiResult
-from cordial_manager.srv import SetString, SetStringResponse
+from cordial_msgs.msg import AskAction, AskGoal, AskResult, AskOnGuiAction, AskOnGuiResult, FaceRequest
+from cordial_msgs.srv import SetString, SetStringResponse
 
 
 class CordialManager:
@@ -159,7 +157,8 @@ class CordialManager:
 
             gui_response = self._gui_action_client.get_result()
         else:
-            rospy.sleep(3)
+            seconds_to_sleep_for_tests = 3
+            rospy.sleep(seconds_to_sleep_for_tests)
             rospy.loginfo("Returning debug response")
             gui_response = AskResult(data="Debugging")
 
