@@ -33,20 +33,36 @@ class CordialManager:
 
     def __init__(
             self,
-            aws_voice_name,
-            aws_region_name,
-            viseme_play_speed,
-            min_viseme_duration_in_seconds,
-            delay_to_publish_visemes_in_seconds,
-            delay_to_publish_gestures_in_seconds=None,
-            is_debug=False
+            delay_to_publish_gestures_in_seconds=None
     ):
 
         rospy.init_node(self._NODE_NAME, anonymous=False)
 
-        if type(is_debug) is not bool:
-            raise TypeError("is_debug must be either True or False")
-        self._is_debug = is_debug
+        self._aws_region_name = rospy.get_param(
+            'aws/region_name',
+            'us-west-1'
+        )
+        self._aws_voice_name = rospy.get_param(
+            'cordial/speech/aws/voice_name',
+            'Ivy'
+        )
+        self._viseme_play_speed = rospy.get_param(
+            'cordial/speech/viseme/play_speed',
+            10
+        )
+        self._min_viseme_duration_in_seconds = rospy.get_param(
+            'cordial/speech/viseme/min_duration_in_seconds',
+            0.05
+        )
+        self._delay_to_publish_visemes_in_seconds = rospy.get_param(
+            'cordial/speech/viseme/publish_delay_in_seconds',
+            0.1
+        )
+        self._is_debug = rospy.get_param(
+            'cordial/manager/is_debug',
+            False
+        )
+
         if self._is_debug:
             rospy.loginfo("Running in debug mode")
 
@@ -74,16 +90,12 @@ class CordialManager:
         self._gui_action_client = actionlib.SimpleActionClient(self._ASK_ON_GUI_SERVICE, AskAction)
 
         self._aws_client = AwsPollyClient(
-            voice=aws_voice_name,
-            region=aws_region_name,
+            voice=self._aws_voice_name,
+            region=self._aws_region_name,
         )
 
-        self._viseme_play_speed = viseme_play_speed
-        self._min_viseme_duration_in_seconds = min_viseme_duration_in_seconds
-
-        self._delay_to_publish_visemes_in_seconds = delay_to_publish_visemes_in_seconds
         if delay_to_publish_gestures_in_seconds is None:
-            delay_to_publish_gestures_in_seconds = delay_to_publish_visemes_in_seconds
+            delay_to_publish_gestures_in_seconds = self._delay_to_publish_visemes_in_seconds
         self._delay_to_publish_gestures_in_seconds = delay_to_publish_gestures_in_seconds
 
         self._is_awake = True
@@ -251,12 +263,5 @@ class CordialManager:
 
 if __name__ == '__main__':
 
-    CordialManager(
-        aws_region_name=rospy.get_param('aws/region_name', 'us-west-1'),
-        aws_voice_name=rospy.get_param('cordial/speech/aws/voice_name', 'Ivy'),
-        viseme_play_speed=rospy.get_param('cordial/speech/viseme/play_speed', 10),
-        min_viseme_duration_in_seconds=rospy.get_param('cordial/speech/viseme/min_duration_in_seconds', 0.05),
-        delay_to_publish_visemes_in_seconds=rospy.get_param('cordial/speech/viseme/publish_delay_in_seconds', 0.1),
-        is_debug=rospy.get_param('cordial/manager/is_debug', False)
-    )
+    CordialManager()
     rospy.spin()

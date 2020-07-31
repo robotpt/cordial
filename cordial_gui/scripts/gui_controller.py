@@ -30,24 +30,33 @@ class GuiController:
         WAITING_FOR_ANOTHER_ASK_REQUEST = "waiting for another ask request"
         TIMEOUT = "timeout"
 
-    def __init__(
-            self,
-            seconds_before_timeout,
-            timeout_message,
-            seconds_with_no_prompt_before_display_goes_off,
-            state_manager_seconds_between_calls,
-            is_debug=False
-    ):
+    def __init__(self):
         rospy.init_node(self._NODE_NAME)
 
-        if type(is_debug) is not bool:
-            raise TypeError("is_debug must be either True or False")
-        self._is_debug = is_debug
+        self._seconds_before_timeout = rospy.get_param(
+            'cordial/gui/seconds_before_timeout',
+            60,
+        )
+        self._timeout_message = rospy.get_param(
+            'cordial/gui/timeout_msg',
+            '<timeout>',
+        )
+        self._seconds_with_no_prompt_before_display_goes_off = rospy.get_param(
+            'cordial/gui/seconds_with_no_prompt_before_display_goes_off',
+            1,
+        )
+        self._state_manager_seconds_between_calls = rospy.get_param(
+            'cordial/gui/state_manager_seconds_between_calls',
+            0.25,
+        )
+        self._is_debug = rospy.get_param(
+            'cordial/gui/is_debug',
+            False
+        )
+
         if self._is_debug:
             rospy.loginfo("Running in debug mode")
 
-        self._seconds_before_timeout = seconds_before_timeout
-        self._seconds_with_no_prompt_before_display_goes_off = seconds_with_no_prompt_before_display_goes_off
         self._last_active_time = None
         self._gui_state = None
         self._last_response_time = None
@@ -67,14 +76,12 @@ class GuiController:
         self._prompt_action_server.register_preempt_callback(self._preempt_callback)
         self._prompt_action_server.start()
 
-        self._timeout_message = timeout_message
-
         if not self._is_debug:
             rospy.wait_for_service(self._IS_GUI_CONNECTED_SERVICE)
         rospy.timer.Timer(
             rospy.Duration(
                 nsecs=int(
-                    state_manager_seconds_between_calls * 1e9
+                    self._state_manager_seconds_between_calls * 1e9
                 )
             ),
             self._state_manager,
@@ -215,26 +222,5 @@ class TimeoutException(rospy.ROSException):
 
 
 if __name__ == '__main__':
-    GuiController(
-        seconds_before_timeout=rospy.get_param(
-            'cordial/gui/seconds_before_timeout',
-            60,
-        ),
-        timeout_message=rospy.get_param(
-            'cordial/gui/timeout_msg',
-            '<timeout>',
-        ),
-        seconds_with_no_prompt_before_display_goes_off=rospy.get_param(
-            'cordial/gui/seconds_with_no_prompt_before_display_goes_off',
-            1,
-        ),
-        state_manager_seconds_between_calls=rospy.get_param(
-            'cordial/gui/state_manager_seconds_between_calls',
-            0.25,
-        ),
-        is_debug=rospy.get_param(
-            'cordial/gui/is_debug',
-            False
-        )
-    )
+    GuiController()
     rospy.spin()
