@@ -11,16 +11,16 @@ from std_msgs.msg import String
 
 class WavFilePublisher:
 
-    def __init__(
-            self,
-            wav_header_length,
-    ):
+    def __init__(self):
 
         rospy.init_node('wav_player', anonymous=True)
+        self._wav_header_length = rospy.get_param(
+            'cordial/sound/wav/header_length',
+            24
+        )
         rospy.Subscriber('cordial/sound/play/file_path/wav', String, self.play_wav_file)
         self._sound_publisher = rospy.Publisher("cordial/sound/play/stream", Sound, queue_size=1)
         self._pyaudio = pyaudio.PyAudio()
-        self._wav_header_length = wav_header_length
 
     def play_wav_file(self, data):
 
@@ -51,7 +51,5 @@ class WavFilePublisher:
 
 if __name__ == '__main__':
 
-    WavFilePublisher(
-        wav_header_length=rospy.get_param('cordial/sound/wav/header_length', 24)
-    )
+    WavFilePublisher()
     rospy.spin()
