@@ -7,6 +7,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build Docker image
-        uses: ./
+        uses: ./.github/actions/run-tests-action
         with:
           args: us-west-1 json ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }}
