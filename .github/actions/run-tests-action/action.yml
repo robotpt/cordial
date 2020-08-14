@@ -3,4 +3,4 @@ description: 'Run tests in the Cordial package'
 
 runs:
   using: 'docker'
-  image: '../../../Dockerfile'
+  image: 'Dockerfile'
