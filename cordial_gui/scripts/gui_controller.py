@@ -28,7 +28,6 @@ class GuiController:
         TRANSITION_TO_BLACK_SCREEN = "transition to black screen"
         WAITING_FOR_USER_RESPONSE = "waiting for user response"
         WAITING_FOR_ANOTHER_ASK_REQUEST = "waiting for another ask request"
-        TIMEOUT = "timeout"
 
     def __init__(self):
         rospy.init_node(self._NODE_NAME)
@@ -97,8 +96,6 @@ class GuiController:
         if self._gui_state in [None, self.State.TRANSITION_TO_BLACK_SCREEN]:
             self._show_black_screen()
             self._gui_state = self.State.BLACK_SCREEN
-        elif self.State.TIMEOUT == self._gui_state:
-            self._gui_state = self.State.TRANSITION_TO_BLACK_SCREEN
         elif self.State.WAITING_FOR_ANOTHER_ASK_REQUEST == self._gui_state:
             if self._is_time_passed_to_wait_for_another_ask_request():
                 self._gui_state = self.State.TRANSITION_TO_BLACK_SCREEN
@@ -172,18 +169,19 @@ class GuiController:
             s = None
             try:
                 s = rospy.topics.Subscriber(self._USER_RESPONSE_TOPIC, String, wfm.cb)
-                while(
+                while (
                         not rospy.core.is_shutdown()
                         and wfm.msg is None
                         and self._gui_state == self.State.WAITING_FOR_USER_RESPONSE
                         and not self._prompt_action_server.is_preempt_requested()
                 ):
-
                     rospy.rostime.wallsleep(0.01)
 
             finally:
                 if s is not None:
                     s.unregister()
+
+                self._last_response_time = datetime.datetime.now()
         else:
             seconds_to_sleep_for_tests = 3
             rospy.sleep(seconds_to_sleep_for_tests)
@@ -205,11 +203,13 @@ class GuiController:
             rospy.loginfo("Setting goal as succeeded")
             self._prompt_action_server.set_succeeded(result)
 
+        self._gui_state = self.State.WAITING_FOR_ANOTHER_ASK_REQUEST
+
     def _publish_action_feedback(self, _):
         feedback = AskFeedback()
         feedback.time_passed = (datetime.datetime.now() - self._last_active_time).seconds
         self._prompt_action_server.publish_feedback(feedback)
-        rospy.loginfo("Feedback: {}".format(feedback.time_passed))
+        # rospy.loginfo("Feedback: {}".format(feedback.time_passed))
 
     def _preempt_callback(self):
         rospy.loginfo("Preempt sent from manager to GUI")
