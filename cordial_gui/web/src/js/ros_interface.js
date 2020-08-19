@@ -43,7 +43,7 @@ function setupRosNetwork() {
     display_listener = new ROSLIB.Topic({
         ros: ros,
         name: 'cordial/gui/display',
-        messageType: 'cordial_gui/Display'
+        messageType: 'cordial_msgs/Display'
     });
     display_listener.subscribe(make_display);
 
@@ -58,7 +58,7 @@ function setupRosNetwork() {
         ros: ros,
         name: 'cordial/gui/event/mouse',
         queue_size: 1,
-        messageType: 'cordial_gui/MouseEvent'
+        messageType: 'cordial_msgs/MouseEvent'
     });
 
     keypress_event_publisher = new ROSLIB.Topic({

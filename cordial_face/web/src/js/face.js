@@ -205,7 +205,7 @@ function startFace(
           listener = new ROSLIB.Topic({
               ros : ros,
               name : 'cordial/face/play',
-              messageType : 'cordial_face/FaceRequest'
+              messageType : 'cordial_msgs/FaceRequest'
           });
           listener.subscribe(get_goal);
 
