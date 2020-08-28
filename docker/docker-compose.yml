@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+  cordial_dev:
+    build:
+      context: .
+      target: cordial_dev
+      network: host
+    environment:
+      DISPLAY: $DISPLAY
+      QT_GRAPHICSSYSTEM: native
+      ROS_DISTRO: kinetic
+      ROS_MASTER_URI: $ROS_MASTER_URI
+      IS_DOCKER_ENV: "true"
+    privileged: true
+    network_mode: host
+    devices: 
+      - /dev/dri:/dev/dri
+      - /dev/snd:/dev/snd
+    volumes:
+      - workspace:/root/ws
+      - pycharm_config:/root/.PyCharmCE2020.2.1/
+      - visual_code_plugins:/root/.vscode/
+      - visual_code_user_data:/root/.visual_code/
+      - aws_config:/root/.aws/
+      - ros_logs:/root/.ros/log
+      - ./shared/:/root/shared/
+      - ~/.gitconfig/:/root/.gitconfig/:ro
+      - ~/.vimrc/:/root/.vimrc/:ro
+      - ~/.vim/:/root/.vim/:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /root/
+
+volumes:
+  workspace:
+  pycharm_config:
+  visual_code_user_data:
+  visual_code_plugins:
+  aws_config:
+  ros_logs:
