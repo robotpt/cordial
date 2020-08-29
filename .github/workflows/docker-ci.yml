@@ -6,7 +6,13 @@ jobs:
     name: Build Docker image to run tests for Cordial
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker image
-        uses: ./.github/actions/run-tests-action
-        with:
-          args: us-west-1 json ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Build Docker container 
+        run: |
+          docker build --target cordial_test --build-arg cordial_branch=${{ steps.extract_branch.outputs.branch }} --tag cordial_test docker/
+      - name: Run tests in the Docker container 
+        run: |
+          docker run --build-arg us-west-1 json ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }} cordial_test 
