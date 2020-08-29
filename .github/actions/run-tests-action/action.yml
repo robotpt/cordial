@@ -1,6 +1,0 @@
-name: 'run-ros-tests'
-description: 'Run tests in the Cordial package'
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
