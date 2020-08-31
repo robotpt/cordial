@@ -1,7 +1,10 @@
 on:
   push:
+  pull:
   schedule:
-    - cron: '0 0 * * *'
+    cron: '0 0 * * *'
+    branches:
+      - master
 
 jobs:
   build_docker_image:
@@ -9,11 +12,18 @@ jobs:
     name: Build Docker image to run tests for Cordial
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set branch name for pull request
+        if: github.event_name == 'pull_request'
+        env: BRANCH_NAME: ${{github.event.pull_request.head.ref}}
+      - name: Set branch name
+        if: github.event_name != 'pull_request'
+        env: BRANCH_NAME: ${GITHUB_REF#refs/heads/}
       - name: Print branch name
-        run: echo ${GITHUB_REF#refs/heads/}
+        run: echo ${BRANCH_NAME}
       - name: Build Docker container 
         run: |
-          docker build --target cordial_test --build-arg cordial_branch=${GITHUB_REF#refs/heads/} --tag cordial_test docker/
+          docker build --target cordial_test --build-arg cordial_branch=${BRANCH_NAME} --tag cordial_test docker/
       - name: Run tests in the Docker container 
         run: |
           docker run cordial_test us-west-1 json ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }}
