@@ -18,7 +18,7 @@ services:
       - /dev/dri:/dev/dri
       - /dev/snd:/dev/snd
     volumes:
-      - workspace:/root/ws/
+      - workspace:/root/catkin_ws/
       - pycharm_config:/root/.PyCharmCE2020.2.1/
       - visual_code_plugins:/root/.vscode/
       - visual_code_user_data:/root/.visual_code/
