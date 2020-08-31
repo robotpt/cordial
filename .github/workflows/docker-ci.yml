@@ -2,12 +2,12 @@ on:
   push:
   pull_request:
   schedule:
-  - cron: '0 0 * * *'
+    - cron: '0 0 * * *'
 
 jobs:
-  build_docker_image:
+  test_cordial:
+    name: Test Cordial
     runs-on: ubuntu-latest
-    name: Build Docker image to run tests for Cordial
     steps:
       - uses: actions/checkout@v2
 
@@ -19,6 +19,7 @@ jobs:
         run: echo "::set-env name=BRANCH_NAME::${GITHUB_REF#refs/heads/}"
       - name: Echo branch name
         run: echo ${BRANCH_NAME}
+
       - name: Build Docker container 
         run: |
           docker build --target cordial_test --build-arg cordial_branch=${BRANCH_NAME} --tag cordial_test docker/
