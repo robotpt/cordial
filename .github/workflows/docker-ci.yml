@@ -1,6 +1,6 @@
 on:
   push:
-  pull:
+  pull_request:
   schedule:
     cron: '0 0 * * *'
     branches:
@@ -15,11 +15,11 @@ jobs:
 
       - name: Set branch name for pull request
         if: github.event_name == 'pull_request'
-        env: BRANCH_NAME: ${{github.event.pull_request.head.ref}}
+        run: echo "::set-env name=BRANCH_NAME::${{github.event.pull_request.head.ref}}"
       - name: Set branch name
         if: github.event_name != 'pull_request'
-        env: BRANCH_NAME: ${GITHUB_REF#refs/heads/}
-      - name: Print branch name
+        run: echo "::set-env name=BRANCH_NAME::${GITHUB_REF#refs/heads/}"
+      - name: Echo branch name
         run: echo ${BRANCH_NAME}
       - name: Build Docker container 
         run: |
