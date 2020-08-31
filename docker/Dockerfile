@@ -143,4 +143,5 @@ alias gb='git branch -a'\n\
 alias gg='git gui'\n\
 alias gd='git diff HEAD'\n\
 alias code='code --user-data-dir /root/.visual_code/'\n\
+source /root/catkin_ws/devel/setup.bash\n\
 " >> ~/.bashrc
