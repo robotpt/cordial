@@ -2,9 +2,7 @@ on:
   push:
   pull_request:
   schedule:
-    cron: '0 0 * * *'
-    branches:
-      - master
+  - cron: '0 0 * * *'
 
 jobs:
   build_docker_image:
