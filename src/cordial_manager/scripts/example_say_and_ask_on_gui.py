@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
+import actionlib
 import rospy
-from cordial_msgs.srv import Ask, AskRequest
+from cordial_msgs.msg import AskOnGuiAction, AskOnGuiGoal
 
 
 class ExampleGuiClient:
@@ -12,71 +13,65 @@ class ExampleGuiClient:
     def __init__(self):
 
         rospy.init_node(self._NODE_NAME)
-        self._client = rospy.ServiceProxy(self._ASK_SERVICE, Ask)
+        self._action_client = actionlib.SimpleActionClient(self._ASK_SERVICE, AskOnGuiAction)
 
     def ask_text_entry(self):
 
-        rospy.wait_for_service(self._ASK_SERVICE)
+        goal = AskOnGuiGoal()
+        goal.type = "text entry"
+        goal.content = "What is your name?"
+        goal.options = ["Is my name"]
+        goal.args = ["Your name"]
 
-        try:
-            request = AskRequest()
-            request.display.type = "text entry"
-            request.display.content = "What is your name?"
-            request.display.buttons = ["Is my name"]
-            request.display.args = ['Your name']
+        self._action_client.wait_for_server()
 
-            return self._client(request)
-
-        except rospy.ServiceException, e:
-            print("Service call failed: %s" % e)
+        self._action_client.send_goal(goal)
+        self._action_client.wait_for_result()
+        response = self._action_client.get_result()
 
     def ask_slider_entry(self):
 
-        rospy.wait_for_service(self._ASK_SERVICE)
+        goal = AskOnGuiGoal()
+        goal.type = "slider"
+        goal.content = "How many steps would you like to walk?"
+        goal.options = ["steps"]
+        goal.args = ["100", "500", "50", "200"]
 
-        try:
-            request = AskRequest()
-            request.display.type = "slider"
-            request.display.content = "How many steps would you like to walk?"
-            request.display.buttons = ["steps"]
-            request.display.args = ["100", "500", "50", "200"]
+        self._action_client.wait_for_server()
 
-            return self._client(request)
-
-        except rospy.ServiceException, e:
-            print("Service call failed: %s" % e)
+        self._action_client.send_goal(goal)
+        self._action_client.wait_for_result()
+        response = self._action_client.get_result()
 
     def ask_time_entry(self):
 
+        goal = AskOnGuiGoal()
+        goal.type = "time entry"
+        goal.content = "When would you like to walk?"
+        goal.options = ["is when"]
+        goal.args = ["30", "12:30"]
+
+        self._action_client.wait_for_server()
+
+        self._action_client.send_goal(goal)
+        self._action_client.wait_for_result()
+        response = self._action_client.get_result()
+
         rospy.wait_for_service(self._ASK_SERVICE)
-
-        try:
-            request = AskRequest()
-            request.display.type = "time entry"
-            request.display.content = "When would you like to walk?"
-            request.display.buttons = ["is when"]
-            request.display.args = ["30", "12:30"]
-
-            return self._client(request)
-
-        except rospy.ServiceException, e:
-            print("Service call failed: %s" % e)
 
     def ask_multiple_choice(self):
 
-        rospy.wait_for_service(self._ASK_SERVICE)
+        goal = AskOnGuiGoal()
+        goal.type = "multiple choice"
+        goal.content = "How are you doing today? Is everything good?"
+        goal.options = ["Great", "Okay", "Bad"]
+        goal.args = []
 
-        try:
-            request = AskRequest()
-            request.display.type = "multiple choice"
-            request.display.content = "How are you doing today? Is everything good?"
-            request.display.buttons = ["Great", "Okay", "Bad"]
-            request.display.args = []
+        self._action_client.wait_for_server()
 
-            return self._client(request)
-
-        except rospy.ServiceException, e:
-            print("Service call failed: %s" % e)
+        self._action_client.send_goal(goal)
+        self._action_client.wait_for_result()
+        response = self._action_client.get_result()
 
 
 if __name__ == "__main__":
