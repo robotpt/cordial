@@ -1,9 +1,9 @@
-Setup
-=====
+Cordial Setup
+=============
 
-Overview
---------
-We run Cordial in a Docker
+To use Cordial, you'll need an Amazon Web Services account and a computer with Docker. These instructions will walk you through setting both of these up and testing that Cordial is setup correctly.
+
+We run Cordial in a Docker container to make setup easier. On Ubuntu, you'll be able to work inside of the Docker container with an IDE and other visualization tools, without setting them up on your computer. When you use the run script, your work in :code:`catkin_ws` and :code:`scratch` will be saved even if you close the container, because we are using `Docker volumes <https://docs.docker.com/storage/volumes/>`_. You can also pass files back and forth between the container and your computer while it's running by putting them in the :code:`shared` directory in :code:`cordial/docker`.
 
 
 Getting your Amazon Web Service credentials
