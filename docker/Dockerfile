@@ -9,6 +9,8 @@ FROM ros:kinetic-ros-base-xenial as cordial_min
 # e.g., docker build --build-arg cordial_branch=master --target cordial_dev .
 ARG cordial_branch=master
 
+ENV ROS_WS /root/catkin_ws
+
 # TODO: see if this can be deleted
 # Setup new ROS key + install ros packages
 RUN \
@@ -62,8 +64,8 @@ RUN \
 
 # Setup the ROS workspace
 RUN \
-	mkdir -p /root/catkin_ws/src \
-	&& cd /root/catkin_ws/src \
+	mkdir -p ${ROS_WS}/src \
+	&& cd ${ROS_WS}/src \
 	&& git clone --branch ${cordial_branch} https://github.com/robotpt/cordial.git \
 	&& git clone https://github.com/RobotWebTools/rosbridge_suite.git \
 	&& cd ..; /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
@@ -143,5 +145,5 @@ alias gb='git branch -a'\n\
 alias gg='git gui'\n\
 alias gd='git diff HEAD'\n\
 alias code='code --user-data-dir /root/.visual_code/'\n\
-source /root/catkin_ws/devel/setup.bash\n\
+source ${ROS_WS}/devel/setup.bash\n\
 " >> ~/.bashrc
