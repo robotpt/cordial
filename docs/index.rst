@@ -1,5 +1,5 @@
-Setting up Cordial
-==================
+Cordial
+=======
 
 Contents:
 
@@ -8,7 +8,3 @@ Contents:
    :glob:
 
    setup
-   troubleshooting
-   common_ops
-   known_issues
-   faq
