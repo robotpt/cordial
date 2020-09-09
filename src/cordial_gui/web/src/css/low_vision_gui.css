@@ -41,11 +41,9 @@ input {
     background: black;
     color: white;
     font-weight: bold;
-    font-size: 1.2em;
 }
 
 input[type=button] {
-    font-size:1.8em;
     padding: 5vh 5vw 5vh 5vw;
 }
 
@@ -71,11 +69,13 @@ input.timepicker {
 
 #col-1-content {
     padding: 8vh;
+    font-size:1.7em;
 }
 
 #col-1-input {
     display: inline-flex;
     padding: 4vh;
+    font-size:2.6em;
 }
 
 .scroller {
