@@ -1,6 +1,7 @@
 <launch>
     <param name="cordial/gui/is_debug" type="bool" value="True"/>
     <node pkg="cordial_gui" type="gui_controller.py" name="gui_controller"/>
+    <rosparam file="$(find cordial_gui)/../topic_parameters/topic_parameters.yaml" />
     <test test-name="test_cordial_gui_pubs_and_subs"
         pkg="cordial_gui"
         type="test_cordial_gui_pubs_and_subs.py"

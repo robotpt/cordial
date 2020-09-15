@@ -1,0 +1,14 @@
+PLAY_FACE_TOPIC: cordial/face/play
+PLAY_GESTURE_TOPIC: cordial/gesture/play
+_MOUSE_EVENT_TOPIC: cordial/gui/event/mouse
+_KEYPRESS_EVENT_TOPIC: cordial/gui/event/keypress
+_NEW_SERVER_EVENT_TOPIC: cordial/gui/event/new_server
+_USER_RESPONSE_TOPIC: cordial/gui/user_response
+_DISPLAY_TOPIC: cordial/gui/display
+_USER_PROMPTED_TOPIC: cordial/gui/prompt
+_SAY_TOPIC: cordial/say
+_PLAY_WAV_FILE_TOPIC: cordial/sound/play/file_path/wav
+_PLAY_FACE_TOPIC: cordial/face/play
+_PLAY_GESTURE_TOPIC: cordial/gesture/play
+_IS_FACE_IDLE_TOPIC: cordial/face/is_idle
+_IS_GO_TO_SLEEP_TOPIC: cordial/sleep

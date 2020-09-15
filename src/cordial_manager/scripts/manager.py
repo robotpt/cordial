@@ -18,14 +18,14 @@ class CordialManager:
 
     _SECONDS_BEFORE_TIMEOUT = 15
 
-    _SAY_TOPIC = "cordial/say"
-    _PLAY_WAV_FILE_TOPIC = "cordial/sound/play/file_path/wav"
+    _SAY_TOPIC = rospy.get_param("_SAY_TOPIC")
+    _PLAY_WAV_FILE_TOPIC = rospy.get_param("_PLAY_WAV_FILE_TOPIC")
 
     _IS_FACE_CONNECTED_SERVICE = "cordial/face/is_connected"
-    _PLAY_FACE_TOPIC = "cordial/face/play"
-    _PLAY_GESTURE_TOPIC = "cordial/gesture/play"
-    _IS_FACE_IDLE_TOPIC = "cordial/face/is_idle"
-    _IS_GO_TO_SLEEP_TOPIC = "cordial/sleep"
+    _PLAY_FACE_TOPIC = rospy.get_param("_PLAY_FACE_TOPIC")
+    _PLAY_GESTURE_TOPIC = rospy.get_param("_PLAY_GESTURE_TOPIC")
+    _IS_FACE_IDLE_TOPIC = rospy.get_param("_IS_FACE_IDLE_TOPIC")
+    _IS_GO_TO_SLEEP_TOPIC = rospy.get_param("_IS_GO_TO_SLEEP_TOPIC")
 
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"

@@ -11,12 +11,12 @@ from cordial_msgs.msg import AskAction, AskFeedback, AskResult, Display, MouseEv
 class GuiController:
     _NODE_NAME = "gui_controller"
 
-    _MOUSE_EVENT_TOPIC = "cordial/gui/event/mouse"
-    _KEYPRESS_EVENT_TOPIC = "cordial/gui/event/keypress"
-    _NEW_SERVER_EVENT_TOPIC = "cordial/gui/event/new_server"
-    _USER_RESPONSE_TOPIC = "cordial/gui/user_response"
-    _DISPLAY_TOPIC = "cordial/gui/display"
-    _USER_PROMPTED_TOPIC = "cordial/gui/prompt"
+    _MOUSE_EVENT_TOPIC = rospy.get_param("_MOUSE_EVENT_TOPIC")
+    _KEYPRESS_EVENT_TOPIC = rospy.get_param("_KEYPRESS_EVENT_TOPIC")
+    _NEW_SERVER_EVENT_TOPIC = rospy.get_param("_NEW_SERVER_EVENT_TOPIC")
+    _USER_RESPONSE_TOPIC = rospy.get_param("_USER_RESPONSE_TOPIC")
+    _DISPLAY_TOPIC = rospy.get_param("_DISPLAY_TOPIC")
+    _USER_PROMPTED_TOPIC = rospy.get_param("_USER_PROMPTED_TOPIC")
     _ASK_SERVICE = "cordial/gui/ask"
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
 
