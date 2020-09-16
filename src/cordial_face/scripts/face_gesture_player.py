@@ -11,16 +11,13 @@ from std_msgs.msg import String
 from cordial_msgs.msg import FaceRequest
 
 
-PLAY_FACE_TOPIC = rospy.get_param("PLAY_FACE_TOPIC")
-PLAY_GESTURE_TOPIC = rospy.get_param("PLAY_GESTURE_TOPIC")
-
 class FaceGesturePlayer:
 
     def __init__(self, expression_file_path):
 
         rospy.init_node('face_expression_publisher')
-        self._face_publisher = rospy.Publisher(PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
-        rospy.Subscriber(PLAY_GESTURE_TOPIC, String, self._play_expression_callback, queue_size=1)
+        self._face_publisher = rospy.Publisher(rospy.get_param("PLAY_FACE_TOPIC"), FaceRequest, queue_size=1)
+        rospy.Subscriber(rospy.get_param("PLAY_GESTURE_TOPIC"), String, self._play_expression_callback, queue_size=1)
 
         self._gestures = Gestures(expression_file_path)
         self._timers = []

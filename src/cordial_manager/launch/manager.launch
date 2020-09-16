@@ -5,7 +5,7 @@
     <arg name="is_launch_sound_listener" default="true" />
     <arg name="is_launch_internet_speed_test" default="true" />
     <rosparam file="$(find cordial_manager)/config/config.yaml" command="load" />
-    <rosparam file="$(find cordial_manager)/../topic_parameters/topic_parameters.yaml" />
+    <rosparam file="$(find cordial)/topic_parameters.yaml" />
 
     <node pkg="cordial_manager" type="manager.py" name="manager" output="screen"/>
 

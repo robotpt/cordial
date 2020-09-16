@@ -1,6 +1,6 @@
 <launch>
     <param name="cordial/manager/is_debug" type="bool" value="True"/>
     <node pkg="cordial_manager" type="manager.py" name="manager" />
-    <rosparam file="$(find cordial_manager)/../topic_parameters/topic_parameters.yaml" />
+    <rosparam file="$(find cordial)/topic_parameters.yaml" />
     <test test-name="test_cordial_manager_services" pkg="cordial_manager" type="test_cordial_manager_services.py"/>
 </launch>
