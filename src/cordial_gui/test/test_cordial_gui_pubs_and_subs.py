@@ -17,7 +17,7 @@ _MOUSE_EVENT_TOPIC = rospy.get_param("_MOUSE_EVENT_TOPIC")
 _KEYPRESS_EVENT_TOPIC = rospy.get_param("_KEYPRESS_EVENT_TOPIC")
 _NEW_SERVER_EVENT_TOPIC = rospy.get_param("_NEW_SERVER_EVENT_TOPIC")
 _USER_RESPONSE_TOPIC = rospy.get_param("_USER_RESPONSE_TOPIC")
-_DISPLAY_TOPIC = rospy.Publisher(rospy.get_param("_DISPLAY_TOPIC"))
+_DISPLAY_TOPIC = rospy.get_param("_DISPLAY_TOPIC")
 _USER_PROMPTED_TOPIC = rospy.get_param("_USER_PROMPTED_TOPIC")
 
 
