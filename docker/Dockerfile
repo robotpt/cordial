@@ -135,15 +135,44 @@ RUN \
 	&& apt-get install -y code \
 	&& rm -rf /var/lib/apt/lists/* 
 
+# Add github command line
+RUN \
+	apt-get update \
+	&& apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0 \
+	&& apt-add-repository https://cli.github.com/packages \
+	&& apt-get update \
+	&& apt-get install -y \
+		gh \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Setup Python3
+ARG python_version="python3.8"
+RUN \
+	add-apt-repository ppa:deadsnakes/ppa -y \
+	&& apt-get update \
+	&& apt-get install -y \
+		${python_version} \
+		${python_version}-dev \
+		${python_version}-venv \
+	# Setup pip
+	&& curl https://bootstrap.pypa.io/get-pip.py | sudo python3.8 \
+	&& ${python_version} -m pip install \
+		rospkg \
+		catkin_pkg \
+	&& rm -rf /var/lib/apt/lists/*
+
 # Put things you want in your ~/.bashrc here
 RUN \
 	unset DEBIAN_FRONTEND \
 	&& echo " \
-alias gs='git status'\n\
-alias gl='git log --pretty=oneline --graph'\n\
 alias gb='git branch -a'\n\
-alias gg='git gui'\n\
+alias gcb='git checkout -b '\n\
 alias gd='git diff HEAD'\n\
+alias gg='git gui'\n\
+alias gl='git log --pretty=oneline --graph'\n\
+alias rh='cd $ROS_PATH'\n\
+alias gs='git status'\n\
 alias code='code --user-data-dir /root/.visual_code/'\n\
+alias STRESS='stress -c $(nproc) -m $(nproc) -i $(nproc) -d $(nproc)'\n\
 source ${ROS_WS}/devel/setup.bash\n\
 " >> ~/.bashrc

@@ -26,11 +26,12 @@ services:
       - visual_code_plugins:/root/.vscode/
       - visual_code_user_data:/root/.visual_code/
       - ./shared/:/root/shared/
-      - ~/.gitconfig/:/root/.gitconfig/:ro
-      - ~/.vimrc/:/root/.vimrc/:ro
-      - ~/.vim/:/root/.vim/:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - ~/.config/gh/:/root/.config/gh/:ro
+      - ~/.gitconfig/:/root/.gitconfig/:ro
+      - ~/.vim/:/root/.vim/:ro
+      - ~/.vimrc/:/root/.vimrc/:ro
     working_dir: /root/
 
 volumes:
