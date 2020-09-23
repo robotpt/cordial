@@ -75,8 +75,7 @@ RUN \
 # Copy the testing entrypoint for testing cordial
 # ===============================================
 FROM cordial_min as cordial_test
-COPY ./scripts/test_entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY ./scripts/test_entrypoint.bash /entrypoint.bash
 
 
 # ============================================
