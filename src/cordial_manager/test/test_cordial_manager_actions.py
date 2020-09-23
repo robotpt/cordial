@@ -14,6 +14,9 @@ _SAY_AND_ASK_ON_GUI_ACTION = "cordial/say_and_ask_on_gui"
 
 class TestCordialManagerActions(unittest.TestCase):
 
+    def setUp(self):
+        rospy.sleep(2)  # Gives time between tests for ROS to reset
+
     def test_ask_on_gui_action(self):
         client = actionlib.SimpleActionClient(
             _SAY_AND_ASK_ON_GUI_ACTION,

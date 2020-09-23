@@ -25,6 +25,7 @@ _IS_GO_TO_SLEEP_TOPIC = "cordial/sleep"
 class TestCordialManagerPubsAndSubs(unittest.TestCase):
 
     def setUp(self):
+        rospy.sleep(2)  # Gives time between tests for ROS to reset
         self._success = False
 
     def wave_file_subscriber_callback(self, msg):
@@ -36,7 +37,7 @@ class TestCordialManagerPubsAndSubs(unittest.TestCase):
             rospy.resolve_name(_MANAGER_NODE)
         )
 
-        test_wav_file_subscriber = rospy.Subscriber(
+        rospy.Subscriber(
             _PLAY_WAV_FILE_TOPIC,
             String,
             callback=self.wave_file_subscriber_callback
@@ -51,7 +52,7 @@ class TestCordialManagerPubsAndSubs(unittest.TestCase):
             rospy.resolve_name(_MANAGER_NODE)
         )
 
-        test_face_subscriber = rospy.Subscriber(
+        rospy.Subscriber(
             _PLAY_FACE_TOPIC,
             FaceRequest,
             callback=self.face_subscriber_callback

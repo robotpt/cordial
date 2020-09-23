@@ -13,6 +13,9 @@ _SAY_SERVICE = "cordial/say"
 
 class TestCordialManagerServices(unittest.TestCase):
 
+    def setUp(self):
+        rospy.sleep(2)  # Gives time between tests for ROS to reset
+
     def test_play_sound_service(self):
 
         rospy.wait_for_service(_SAY_SERVICE)
