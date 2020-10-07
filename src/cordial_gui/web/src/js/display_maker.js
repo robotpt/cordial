@@ -209,7 +209,28 @@ function _parse_time(t) {
     return d;
 }
 
-function multiple_choice_prompt(
+ function multiple_choice_prompt(
+     content,
+     buttons,
+     callback_fn,
+     args = [],
+     seconds_before_enabling_input = 0
+ ) {
+     if (args.length > 0) {
+         alert("No args accepted to multiple choice");
+     }
+
+     _two_col_prompt(
+         content,
+         _make_buttons(buttons),
+         _get_pushed_button_value,
+         undefined,
+         callback_fn,
+         seconds_before_enabling_input
+     );
+ }
+
+function multiple_choice_prompt_one_col(
     content,
     buttons,
     callback_fn,
@@ -220,9 +241,16 @@ function multiple_choice_prompt(
         alert("No args accepted to multiple choice");
     }
 
-    _two_col_prompt(
-        content,
-        _make_buttons(buttons),
+    var parent_selector = "#col-1";
+    var content_selector = "#col-1-content";
+    var input_selector = "#col-1-input";
+
+    $(content_selector).html(_prepare_content(content));
+    $(input_selector).html(_make_buttons(buttons));
+
+    _prompt(
+        parent_selector,
+        input_selector,
         _get_pushed_button_value,
         undefined,
         callback_fn,

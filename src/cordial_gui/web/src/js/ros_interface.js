@@ -133,6 +133,9 @@ function make_display(display_msg) {
         case 'multiple choice':
             multiple_choice_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
+        case 'multiple choice one column':
+            multiple_choice_prompt_one_col(content, buttons, callback_fn, args, buttons_delay_seconds);
+            break;
         case 'text entry':
             text_entry_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
