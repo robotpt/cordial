@@ -209,7 +209,7 @@ function _parse_time(t) {
     return d;
 }
 
- function multiple_choice_prompt(
+function multiple_choice_prompt(
      content,
      buttons,
      callback_fn,
