@@ -8,7 +8,6 @@ import time
 class RosInternetSpeedTester:
 
     def __init__(self):
-        self._speed_tester = speedtest.Speedtest()
 
         rospy.init_node('internet_speed_monitor')
 
@@ -30,6 +29,7 @@ class RosInternetSpeedTester:
             self.log_internet_speed()
 
     def log_internet_speed(self):
+        speed_tester = speedtest.Speedtest()
         start_time = time.time()
         rospy.loginfo(
             (
@@ -38,8 +38,8 @@ class RosInternetSpeedTester:
                 "-- "
                 "test took {duration:0.1f}s"
             ).format(
-                down=self.download(),
-                up=self.upload(),
+                down=self.download(speed_tester),
+                up=self.upload(speed_tester),
                 duration=time.time()-start_time
             )
         )
@@ -47,16 +47,16 @@ class RosInternetSpeedTester:
     def _log_internet_speed_callback(self, _):
         self.log_internet_speed()
 
-    def download(self):
+    def download(self, speed_tester):
         """Download in Mbps"""
         return self._bytes_to_megabytes(
-            self._speed_tester.download()
+            speed_tester.download()
         )
 
-    def upload(self):
+    def upload(self, speed_tester):
         """Upload in Mbps"""
         return self._bytes_to_megabytes(
-            self._speed_tester.upload()
+            speed_tester.upload()
         )
 
     @staticmethod
