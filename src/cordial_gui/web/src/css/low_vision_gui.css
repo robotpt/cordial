@@ -33,9 +33,9 @@ body {
 }
 
 input {
-    border-radius: 4vh;
-    padding: 2vh 5vw 2vh 5vw;
-    margin: 2vh;
+    border-radius: 4vw;
+    padding: 2vw 4vw 2vw 4vw;
+    margin: 1vw;
     text-align: center;
     white-space: normal;
     background: black;
@@ -44,7 +44,8 @@ input {
 }
 
 input[type=button] {
-    padding: 5vh 5vw 5vh 5vw;
+    padding: 2vw 5vw 2vw 5vw;
+    max-width: 50vw;
 }
 
 input[type=text] {
@@ -68,7 +69,7 @@ input.timepicker {
 }
 
 #col-1-content {
-    padding: 8vh;
+    padding: 8vw;
     font-size:1.7em;
 }
 
