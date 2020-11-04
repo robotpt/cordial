@@ -18,15 +18,9 @@ class CordialManager:
 
     _SECONDS_BEFORE_TIMEOUT = 15
 
-    _SAY_TOPIC = "cordial/say"
-    _PLAY_WAV_FILE_TOPIC = "cordial/sound/play/file_path/wav"
+    _SAY_TOPIC = rospy.get_param("cordial_say/say_topic")
 
     _IS_FACE_CONNECTED_SERVICE = "cordial/face/is_connected"
-    _PLAY_FACE_TOPIC = "cordial/face/play"
-    _PLAY_GESTURE_TOPIC = "cordial/gesture/play"
-    _IS_FACE_IDLE_TOPIC = "cordial/face/is_idle"
-    _IS_GO_TO_SLEEP_TOPIC = "cordial/sleep"
-
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
     _SAY_AND_ASK_ON_GUI_SERVICE = "cordial/say_and_ask_on_gui"
     _ASK_ON_GUI_SERVICE = "cordial/gui/ask"
@@ -68,12 +62,12 @@ class CordialManager:
 
         rospy.Subscriber(self._SAY_TOPIC, String, self._say_callback, queue_size=1)
 
-        self._wav_file_publisher = rospy.Publisher(self._PLAY_WAV_FILE_TOPIC, String, queue_size=1)
-        self._face_publisher = rospy.Publisher(self._PLAY_FACE_TOPIC, FaceRequest, queue_size=1)
-        self._gesture_publisher = rospy.Publisher(self._PLAY_GESTURE_TOPIC, String, queue_size=1)
-        self._is_idle_publisher = rospy.Publisher(self._IS_FACE_IDLE_TOPIC, Bool, queue_size=1)
+        self._wav_file_publisher = rospy.Publisher(rospy.get_param("cordial_sound/play_wav_topic"), String, queue_size=1)
+        self._face_publisher = rospy.Publisher(rospy.get_param("cordial_face/play_topic"), FaceRequest, queue_size=1)
+        self._gesture_publisher = rospy.Publisher(rospy.get_param("cordial_gesture/play_topic"), String, queue_size=1)
+        self._is_idle_publisher = rospy.Publisher(rospy.get_param("cordial_face/is_idle_topic"), Bool, queue_size=1)
 
-        self._go_to_sleep_subscriber = rospy.Subscriber(self._IS_GO_TO_SLEEP_TOPIC, Bool, self._go_to_sleep_callback,
+        self._go_to_sleep_subscriber = rospy.Subscriber(rospy.get_param("cordial_sleep/sleep_topic"), Bool, self._go_to_sleep_callback,
                                                         queue_size=1)
 
         self._play_sound_service = rospy.Service(self._SAY_TOPIC, SetString, self._say_service)

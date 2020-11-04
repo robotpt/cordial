@@ -11,12 +11,6 @@ from cordial_msgs.msg import AskAction, AskFeedback, AskResult, Display, MouseEv
 class GuiController:
     _NODE_NAME = "gui_controller"
 
-    _MOUSE_EVENT_TOPIC = "cordial/gui/event/mouse"
-    _KEYPRESS_EVENT_TOPIC = "cordial/gui/event/keypress"
-    _NEW_SERVER_EVENT_TOPIC = "cordial/gui/event/new_server"
-    _USER_RESPONSE_TOPIC = "cordial/gui/user_response"
-    _DISPLAY_TOPIC = "cordial/gui/display"
-    _USER_PROMPTED_TOPIC = "cordial/gui/prompt"
     _ASK_SERVICE = "cordial/gui/ask"
     _IS_GUI_CONNECTED_SERVICE = "cordial/gui/is_connected"
 
@@ -60,12 +54,12 @@ class GuiController:
         self._gui_state = None
         self._last_response_time = None
 
-        rospy.Subscriber(self._MOUSE_EVENT_TOPIC, MouseEvent, self._set_last_active_datetime)
-        rospy.Subscriber(self._KEYPRESS_EVENT_TOPIC, String, self._set_last_active_datetime)
-        rospy.Subscriber(self._NEW_SERVER_EVENT_TOPIC, Empty, self._show_black_screen_cb)
+        rospy.Subscriber(rospy.get_param("cordial_gui/event/mouse_topic"), MouseEvent, self._set_last_active_datetime)
+        rospy.Subscriber(rospy.get_param("cordial_gui/event/keypress_topic"), String, self._set_last_active_datetime)
+        rospy.Subscriber(rospy.get_param("cordial_gui/event/new_server_topic"), Empty, self._show_black_screen_cb)
 
-        self._display_publisher = rospy.Publisher(self._DISPLAY_TOPIC, Display, queue_size=1)
-        self._prompt_publisher = rospy.Publisher(self._USER_PROMPTED_TOPIC, Empty, queue_size=1)
+        self._display_publisher = rospy.Publisher(rospy.get_param("cordial_gui/display_topic"), Display, queue_size=1)
+        self._prompt_publisher = rospy.Publisher(rospy.get_param("cordial_gui/prompt_topic"), Empty, queue_size=1)
         self._prompt_action_server = actionlib.SimpleActionServer(
             self._ASK_SERVICE,
             AskAction,
@@ -168,7 +162,7 @@ class GuiController:
         if not self._is_debug:
             s = None
             try:
-                s = rospy.topics.Subscriber(self._USER_RESPONSE_TOPIC, String, wfm.cb)
+                s = rospy.topics.Subscriber(rospy.get_param("cordial_gui/response_topic"), String, wfm.cb)
                 while (
                         not rospy.core.is_shutdown()
                         and wfm.msg is None

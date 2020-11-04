@@ -13,12 +13,12 @@ PKG = "cordial_manager"
 NAME = "test_cordial_gui_pubs_and_subs"
 _GUI_NODE = "gui_controller"
 
-_MOUSE_EVENT_TOPIC = "cordial/gui/event/mouse"
-_KEYPRESS_EVENT_TOPIC = "cordial/gui/event/keypress"
-_NEW_SERVER_EVENT_TOPIC = "cordial/gui/event/new_server"
-_USER_RESPONSE_TOPIC = "cordial/gui/user_response"
-_DISPLAY_TOPIC = "cordial/gui/display"
-_USER_PROMPTED_TOPIC = "cordial/gui/prompt"
+_MOUSE_EVENT_TOPIC = rospy.get_param("cordial_gui/event/mouse_topic")
+_KEYPRESS_EVENT_TOPIC = rospy.get_param("cordial_gui/event/keypress_topic")
+_NEW_SERVER_EVENT_TOPIC = rospy.get_param("cordial_gui/event/new_server_topic")
+_USER_RESPONSE_TOPIC = rospy.get_param("cordial_gui/response_topic")
+_DISPLAY_TOPIC = rospy.get_param("cordial_gui/display_topic")
+_USER_PROMPTED_TOPIC = rospy.get_param("cordial_gui/prompt_topic")
 
 
 class TestCordialGuiPubsAndSubs(unittest.TestCase):

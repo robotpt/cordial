@@ -3,6 +3,7 @@
 	<arg name="web_directory_path" value="$(find cordial_gui)/web"/>
 	<arg name="port" default="8080"/>
     <arg name="is_launch_websocket" default="true"/>
+    <rosparam file="$(find cordial)/topic_parameters.yaml" />
 
     <node pkg="cordial_tools" type="http_server_runner.py" name="gui_http_server" output="screen"
         args="$(arg web_directory_path) $(arg port)" />

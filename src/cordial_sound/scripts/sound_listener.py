@@ -56,6 +56,6 @@ if __name__ == '__main__':
 
 
     rospy.init_node('sound_listener')
-    rospy.Subscriber('cordial/sound/play/stream', Sound, play_sound)
+    rospy.Subscriber(rospy.get_param('cordial_sound/play_stream_topic'), Sound, play_sound)
     rospy.spin()
 
