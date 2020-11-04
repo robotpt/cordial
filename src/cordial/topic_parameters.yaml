@@ -1,14 +1,20 @@
-PLAY_FACE_TOPIC: cordial/face/play
-PLAY_GESTURE_TOPIC: cordial/gesture/play
-_MOUSE_EVENT_TOPIC: cordial/gui/event/mouse
-_KEYPRESS_EVENT_TOPIC: cordial/gui/event/keypress
-_NEW_SERVER_EVENT_TOPIC: cordial/gui/event/new_server
-_USER_RESPONSE_TOPIC: cordial/gui/user_response
-_DISPLAY_TOPIC: cordial/gui/display
-_USER_PROMPTED_TOPIC: cordial/gui/prompt
-_SAY_TOPIC: cordial/say
-_PLAY_WAV_FILE_TOPIC: cordial/sound/play/file_path/wav
-_PLAY_FACE_TOPIC: cordial/face/play
-_PLAY_GESTURE_TOPIC: cordial/gesture/play
-_IS_FACE_IDLE_TOPIC: cordial/face/is_idle
-_IS_GO_TO_SLEEP_TOPIC: cordial/sleep
+cordial_face:
+  play_topic: cordial/face/play
+  is_idle_topic: cordial/face/is_idle
+cordial_gesture:
+  play_topic: cordial/gesture/play
+cordial_gui:
+  event:
+    mouse_topic: cordial/gui/event/mouse
+    keypress_topic: cordial/gui/event/keypress
+    new_server_topic: cordial/gui/event/new_server
+  response_topic: cordial/gui/user_response
+  display_topic: cordial/gui/display
+  prompt_topic: cordial/gui/prompt
+cordial_say:
+  say_topic: cordial/say
+cordial_sound:
+  play_wav_topic: cordial/sound/play/file_path/wav
+  play_stream_topic: cordial/sound/play/stream
+cordial_sleep:
+  sleep_topic: cordial/sleep

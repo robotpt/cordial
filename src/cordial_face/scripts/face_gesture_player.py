@@ -16,8 +16,8 @@ class FaceGesturePlayer:
     def __init__(self, expression_file_path):
 
         rospy.init_node('face_expression_publisher')
-        self._face_publisher = rospy.Publisher(rospy.get_param("PLAY_FACE_TOPIC"), FaceRequest, queue_size=1)
-        rospy.Subscriber(rospy.get_param("PLAY_GESTURE_TOPIC"), String, self._play_expression_callback, queue_size=1)
+        self._face_publisher = rospy.Publisher(rospy.get_param("cordial_face/play_topic"), FaceRequest, queue_size=1)
+        rospy.Subscriber(rospy.get_param("cordial_gesture/play_topic"), String, self._play_expression_callback, queue_size=1)
 
         self._gestures = Gestures(expression_file_path)
         self._timers = []

@@ -18,8 +18,8 @@ class WavFilePublisher:
             'cordial/sound/wav/header_length',
             24
         )
-        rospy.Subscriber('cordial/sound/play/file_path/wav', String, self.play_wav_file)
-        self._sound_publisher = rospy.Publisher("cordial/sound/play/stream", Sound, queue_size=1)
+        rospy.Subscriber(rospy.get_param('cordial_sound/play_wav_topic'), String, self.play_wav_file)
+        self._sound_publisher = rospy.Publisher(rospy.get_param('cordial_sound/play_stream_topic'), Sound, queue_size=1)
         self._pyaudio = pyaudio.PyAudio()
 
     def play_wav_file(self, data):

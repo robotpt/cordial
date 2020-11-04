@@ -7,7 +7,7 @@ from cordial_msgs.srv import SetString, SetStringRequest
 class ExampleSayClient:
 
     _NODE_NAME = "example_say_client"
-    _SAY_SERVICE = "cordial/say"
+    _SAY_SERVICE = "cordial_say/say_topic"
 
     def __init__(self):
 

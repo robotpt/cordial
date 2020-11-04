@@ -7,7 +7,7 @@ from std_msgs.msg import String
 
 
 rospy.init_node('example_sound_publisher', anonymous=True)
-sound_publisher = rospy.Publisher("cordial/sound/play/file_path/wav", String, queue_size=1)
+sound_publisher = rospy.Publisher(rospy.get_param("cordial_sound/play_wav_topic"), String, queue_size=1)
 
 
 if __name__ == '__main__':
