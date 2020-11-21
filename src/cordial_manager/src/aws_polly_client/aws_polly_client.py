@@ -11,7 +11,7 @@ from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 from contextlib import closing
 
-from behavior_schedule import BehaviorSchedule
+from src.cordial_manager.src.aws_polly_client.behavior_schedule import BehaviorSchedule
 
 
 VISEMES_TRANSLATION = {
