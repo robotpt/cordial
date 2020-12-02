@@ -1,1 +1,1 @@
-from aws_polly_client import AwsPollyClient
+from src.cordial_manager.src.aws_polly_client.aws_polly_client import AwsPollyClient
