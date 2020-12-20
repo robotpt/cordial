@@ -7,7 +7,8 @@ FROM ros:kinetic-ros-base-xenial as cordial_min
 
 # Pass in a command line arguement to set the branch to use
 # e.g., docker build --build-arg cordial_branch=master --target cordial_dev .
-ARG cordial_branch=master
+ARG cordial_branch="master"
+ARG cordial_remote="https://github.com/robotpt/cordial.git"
 
 ENV ROS_WS /root/catkin_ws
 
@@ -66,16 +67,23 @@ RUN \
 RUN \
 	mkdir -p ${ROS_WS}/src \
 	&& cd ${ROS_WS}/src \
-	&& git clone --branch ${cordial_branch} https://github.com/robotpt/cordial.git \
+	&& git clone --branch ${cordial_branch} ${cordial_remote} \
 	&& git clone https://github.com/RobotWebTools/rosbridge_suite.git \
 	&& cd ..; /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
 
 
-# ===============================================
-# Copy the testing entrypoint for testing cordial
-# ===============================================
-FROM cordial_min as cordial_test
-COPY ./scripts/test_entrypoint.sh /entrypoint.sh
+# ======================================================
+# Copy the testing entrypoint for testing cordial - full
+# ======================================================
+FROM cordial_min as cordial_test_full
+COPY ./scripts/test_full.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+# ====================================================
+# Copy the testing entrypoint for testing cordial - PR
+# ====================================================
+FROM cordial_min as cordial_test_pr
+COPY ./scripts/test_pr.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 
