@@ -19,9 +19,9 @@ jobs:
           echo "Remote: ${REMOTE_URL}"
           echo "Branch: ${BRANCH_NAME}"
 
-      - name: Build Docker container 
+      - name: Build Docker container
         run: |
           docker build --target cordial_test_full --build-arg cordial_remote=${REMOTE_URL} --build-arg cordial_branch=${BRANCH_NAME} --tag cordial_test docker/
-      - name: Run tests in the Docker container 
+      - name: Run tests in the Docker container
         run: |
           docker run cordial_test us-west-1 json ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }}

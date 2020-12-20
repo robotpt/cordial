@@ -18,9 +18,9 @@ jobs:
           echo "Branch: ${BRANCH_NAME}"
 
 
-      - name: Build Docker container 
+      - name: Build Docker container
         run: |
           docker build --target cordial_test_pr --build-arg cordial_remote=${REMOTE_URL} --build-arg cordial_branch=${BRANCH_NAME} --tag cordial_test docker/
-      - name: Run tests in the Docker container 
+      - name: Run tests in the Docker container
         run: |
-          docker run cordial_test 
+          docker run cordial_test
