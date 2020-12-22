@@ -1,0 +1,26 @@
+on:
+  pull_request:
+
+jobs:
+  test_cordial:
+    name: Test Cordial
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set branch name for pull request
+        run: |
+          echo "REMOTE_URL=${{github.event.pull_request.head.repo.html_url}}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${{github.event.pull_request.head.ref}}" >> $GITHUB_ENV
+      - name: Echo remote and branch name
+        run: |
+          echo "Remote: ${REMOTE_URL}"
+          echo "Branch: ${BRANCH_NAME}"
+
+
+      - name: Build Docker container
+        run: |
+          docker build --target cordial_test_pr --build-arg cordial_remote=${REMOTE_URL} --build-arg cordial_branch=${BRANCH_NAME} --tag cordial_test docker/
+      - name: Run tests in the Docker container
+        run: |
+          docker run cordial_test
