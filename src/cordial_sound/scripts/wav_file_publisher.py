@@ -25,7 +25,7 @@ class WavFilePublisher:
         rospy.Subscriber(rospy.get_param(
             'cordial_sound/play_wav_topic'), String, self.play_wav_file)
         self._sound_publisher = rospy.Publisher(rospy.get_param(
-            'cordial_sound/play_stream_topic'), Sound, queue_size=10)
+            'cordial_sound/play_stream_topic'), Sound, queue_size=1)
         self._pyaudio = pyaudio.PyAudio()
 
     def _split_audio_once(self, from_sec, to_sec, audio):
