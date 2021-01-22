@@ -65,7 +65,7 @@ class WavFilePublisher:
             f"Publishing sound chunk {str(current_chunk_id)}/{str(len(self.audio_chunks))} from '{format(file_path)}'")
         self._sound_publisher.publish(sound_msg)
 
-    def play_wav_file(self, data, seconds_per_split=1):
+    def play_wav_file(self, data, seconds_per_split=int(rospy.get_param("cordial_sound/seconds_per_chunk"))):
 
         file_path = data.data
 

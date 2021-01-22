@@ -41,7 +41,8 @@ def play_sound(data):
             output_device_index=SPEAKER_DEVICE_INDEX,
         )
         stream.write(data.data)
-        time.sleep(0.05)
+        time.sleep(float(rospy.get_param(
+            "cordial_sound/sound_listener_sleep_time")))
         stream.stop_stream()
 
         stream.close()
