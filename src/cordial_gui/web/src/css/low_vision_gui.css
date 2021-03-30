@@ -91,6 +91,17 @@ input.timepicker {
     height: 40%;
 }
 
+.numpad-row {
+    padding-bottom: 2%;
+}
+
+.numpad-row > button {
+    color: white;
+    background-color: black;
+    width: 15%;
+    border-radius: 10%;
+}
+
 .scroller {
     overflow-y: scroll;
     max-height: 70vh;

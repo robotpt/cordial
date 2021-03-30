@@ -145,6 +145,9 @@ function make_display(display_msg) {
         case 'slider':
             slider_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
+        case 'numpad':
+            numpad_prompt(content, buttons, callback_fn, args, buttons_delay_seconds);
+            break;
         default:
             var message = "'" + display_type + "' not implemented";
             console.log(message);
