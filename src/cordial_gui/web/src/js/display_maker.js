@@ -18,6 +18,13 @@ function setup_cycle_through_displays(start_idx = 0) {
             )
         },
         function() {
+            multiple_choice_prompt_one_col(
+                "How are you?", ["excellent", "good", "fair", "poor"],
+                _log_value, [],
+                2
+            )
+        },
+        function() {
             text_entry_prompt(
                 "What's your name?",
                 "Done",
@@ -39,6 +46,13 @@ function setup_cycle_through_displays(start_idx = 0) {
                 "Done",
                 _log_value, ["5", "12:33"],
                 3
+            )
+        },
+        function() {
+            numpad_prompt(
+                "Enter the digits of your phone number without spaces.", ["Next"],
+                _log_value, [],
+                2
             )
         }
     ];
@@ -77,7 +91,7 @@ function text_entry_prompt(
     var input_selector = "#col-1-input";
 
     var display_html = _prepare_content(content)
-    var input_html = '<input type="text" placeholder="' + placeholder_text + '"> <br>'
+    var input_html = '<input type="text" id="text-input" placeholder="' + placeholder_text + '"> <br>'
     input_html += _make_buttons(button, false)
 
     $(content_selector).html(display_html)
@@ -102,7 +116,7 @@ function slider_prompt(
 ) {
 
     if (args.length !== 3 && args.length !== 4) {
-        alert("slider must have three or four args: start number, end number, step_size, current_value");
+        alert("slider must have three or four args: start numpad-button, end numpad-button, step_size, current_value");
     }
     var start_value = parseFloat(args[0]);
     var end_value = parseFloat(args[1]);
@@ -110,7 +124,7 @@ function slider_prompt(
     var current_value = parseFloat(args[3]) || (end_value - start_value) / 2;
 
     if (isNaN(start_value) || isNaN(end_value) || isNaN(increment_value || isNaN(current_value))) {
-        alert("Args must all be floating numbers, atleast one could not be parsed");
+        alert("Args must all be floating numpad-buttons, atleast one could not be parsed");
     }
 
     var parent_selector = "#col-1";
@@ -258,6 +272,44 @@ function multiple_choice_prompt_one_col(
     );
 }
 
+function numpad_prompt(
+    content,
+    buttons,
+    callback_fn,
+    args = [],
+    seconds_before_enabling_input = 0
+) {
+    var parent_selector = "#col-1";
+    var content_selector = "#col-1-content";
+    var input_selector = "#col-1-input";
+
+    var display_html = _make_keypad_html();
+
+    var input_html = '<input type="text" id="text-input"> <br>';
+    input_html += _make_buttons(buttons, false);
+
+    $(content_selector).html(display_html);
+    $(input_selector).html(input_html);
+
+    $(".numpad-button").each(function() {
+        var value = $(this).val();
+        $(this).click(function(){
+            _add_value_to_text_field(value);
+        })
+    });
+
+    $("#delete-button").click(_delete_character_from_field);
+
+    _prompt(
+        parent_selector,
+        input_selector,
+        _get_text_value,
+        input_selector,
+        callback_fn,
+        seconds_before_enabling_input,
+    );
+}
+
 function _two_col_prompt(
     content,
     input,
@@ -402,6 +454,40 @@ function _get_slider_value(_, parent_selector) {
 
 function _get_time_value(_, _) {
     return $('.timepicker').wickedpicker('time')
+}
+
+function _make_keypad_html() {
+    return `
+        <div class="numpad-row">
+            <button type="button" class="numpad-button" value="1">1</button>
+            <button type="button" class="numpad-button" value="2">2</button>
+            <button type="button" class="numpad-button" value="3">3</button> 
+            <button type="button" class="numpad-button" value="4">4</button>
+        </div>
+        <div class="numpad-row">
+            <button type="button" class="numpad-button" value="5">5</button>
+            <button type="button" class="numpad-button" value="6">6</button> 
+            <button type="button" class="numpad-button" value="7">7</button>
+            <button type="button" class="numpad-button" value="8">8</button>
+        </div>
+        <div class="numpad-row">
+            <button type="button" class="numpad-button" value="9">9</button> 
+            <button type="button" class="numpad-button" value="0">0</button>
+            <button type="button" class="numpad-button" value="/">/</button>
+            <button type="button" class="numpad-button" value=".">.</button>
+            <button type="button" id="delete-button" value="&lt;">&lt;</button> 
+        </div>
+    `
+}
+
+function _add_value_to_text_field(button_value) {
+    document.getElementById("text-input").value += button_value;
+}
+
+function _delete_character_from_field() {
+    var text_field = document.getElementById("text-input");
+    var current_value = text_field.value;
+    text_field.value = current_value.substring(0, current_value.length-1);
 }
 
 function _is_valid_text_entry(entry) {
