@@ -16,5 +16,7 @@ cordial_say:
 cordial_sound:
   play_wav_topic: cordial/sound/play/file_path/wav
   play_stream_topic: cordial/sound/play/stream
+  sound_listener_sleep_time: 0.05
+  seconds_per_chunk: 1
 cordial_sleep:
   sleep_topic: cordial/sleep

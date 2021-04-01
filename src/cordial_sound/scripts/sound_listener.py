@@ -29,10 +29,8 @@ def play_sound(data):
 
     p = pyaudio.PyAudio()
 
-    """
-    Occasionally pyaudio fails to open correctly.  Online resources said that this was likely because This is an attempt to fix it by closing down the node
-    and restarting the node. 
-    """
+    # Occasionally pyaudio fails to open correctly.  Online resources said that this was likely because This is an attempt to fix it by closing down the node and restarting the node.
+
     try:
         stream = p.open(
             format=data.format,
@@ -43,7 +41,8 @@ def play_sound(data):
             output_device_index=SPEAKER_DEVICE_INDEX,
         )
         stream.write(data.data)
-        time.sleep(1)
+        time.sleep(float(rospy.get_param(
+            "cordial_sound/sound_listener_sleep_time")))
         stream.stop_stream()
 
         stream.close()
@@ -54,8 +53,7 @@ def play_sound(data):
 
 if __name__ == '__main__':
 
-
     rospy.init_node('sound_listener')
-    rospy.Subscriber(rospy.get_param('cordial_sound/play_stream_topic'), Sound, play_sound)
+    rospy.Subscriber(rospy.get_param(
+        'cordial_sound/play_stream_topic'), Sound, play_sound)
     rospy.spin()
-
