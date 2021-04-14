@@ -310,6 +310,34 @@ function numpad_prompt(
     );
 }
 
+function video_display(
+    content,
+    buttons,
+    callback_fn,
+    args = [],
+    seconds_before_enabling_input = 0
+) {
+    if (args.length > 1) {
+        alert("video display only accepts one arg, the video link");
+    }
+
+    var parent_selector = "#col-1";
+    var content_selector = "#col-1-content";
+    var input_selector = "#col-1-input";
+    var display_html = '<iframe width="750" height="550" src=' +  args[0] + '></iframe> <br>';
+    $(content_selector).html(display_html);
+    $(input_selector).html(_make_buttons(buttons));
+
+    _prompt(
+        parent_selector,
+        input_selector,
+        _get_pushed_button_value,
+        undefined,
+        callback_fn,
+        seconds_before_enabling_input
+    );
+}
+
 function _two_col_prompt(
     content,
     input,
