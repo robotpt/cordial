@@ -68,7 +68,7 @@ input.timepicker {
     display: none;
 }
 
-#col-1-content {
+#col-1-content, #col-1-numpad {
     padding: 0.5em;
     font-size: 1.7em;
 }
