@@ -1,3 +1,31 @@
+body,
+p,
+.container,
+.scroller,
+.col-4,
+.col-8,
+.row {
+    padding: 0;
+    margin: 0;
+}
+
+.container {
+    max-width: 100vw;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-size: 2em;
+    font-weight: bold;
+    font-family: 'B612', sans-serif;
+    text-align: center;
+}
+
 .background {
     background-color: white;
     background-blend-mode: lighten;
@@ -6,7 +34,7 @@
 
 #col-2-right input, #col-1 input {
     width: 70vw;
-    height: 16vh;
+    height: fit-content;
     font-size: 2.5em;
     font-weight: bold;
     font-family: 'B612', sans-serif;
@@ -17,4 +45,20 @@
     color: white;
     margin: 1vh;
     padding: 2px;
+}
+
+#col-1-numpad {
+    padding: 0.5em;
+    font-size: 1.7em;
+}
+
+.numpad-row {
+    padding-bottom: 2%;
+}
+
+.numpad-row > button {
+    color: white;
+    background-color: black;
+    width: 15%;
+    border-radius: 10%;
 }
