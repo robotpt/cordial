@@ -280,7 +280,7 @@ function numpad_prompt(
     seconds_before_enabling_input = 0
 ) {
     var parent_selector = "#col-1";
-    var content_selector = "#col-1-content";
+    var content_selector = "#col-1-numpad";
     var input_selector = "#col-1-input";
 
     var display_html = _make_keypad_html();

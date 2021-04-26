@@ -6,7 +6,7 @@
 
 #col-2-right input, #col-1 input {
     width: 70vw;
-    height: 16vh;
+    height: fit-content;
     font-size: 2.5em;
     font-weight: bold;
     font-family: 'B612', sans-serif;
@@ -17,4 +17,20 @@
     color: white;
     margin: 1vh;
     padding: 2px;
+}
+
+#col-1-numpad {
+    padding: 1vw;
+    font-size: 1.7em;
+}
+
+.numpad-row {
+    padding-bottom: 2%;
+}
+
+.numpad-row > button {
+    color: white;
+    background-color: black;
+    width: 15%;
+    border-radius: 10%;
 }
