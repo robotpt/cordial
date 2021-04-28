@@ -280,7 +280,8 @@ function numpad_prompt(
     seconds_before_enabling_input = 0
 ) {
     var parent_selector = "#col-1";
-    var content_selector = "#col-1-numpad";
+    var content_selector = "#col-1-content";
+    var default_content_display_type = $(content_selector).css("display");
     var input_selector = "#col-1-input";
 
     var display_html = _make_keypad_html();
@@ -289,6 +290,7 @@ function numpad_prompt(
     input_html += _make_buttons(buttons, false);
 
     $(content_selector).html(display_html);
+    $(content_selector).css("display", "block");
     $(input_selector).html(input_html);
 
     $(".numpad-button").each(function() {
@@ -300,12 +302,14 @@ function numpad_prompt(
 
     $("#delete-button").click(_delete_character_from_field);
 
-    _prompt(
+    _numpad_prompt(
         parent_selector,
         input_selector,
+        content_selector,
         _get_text_value,
         input_selector,
         callback_fn,
+        default_content_display_type,
         seconds_before_enabling_input,
     );
 }
@@ -390,6 +394,39 @@ function _prompt(
             callback_fn(value);
         }
         $(parent_selector).fadeOut();
+    })
+}
+
+function _numpad_prompt(
+    parent_selector,
+    input_selector,
+    content_selector,
+    get_value_fn,
+    selector_to_element_of_interest,
+    callback_fn,
+    default_content_display_type,
+    seconds_before_enabling_input = 0
+) {
+
+    $(input_selector).children("input:button").prop("disabled", true);
+    sleep(seconds_before_enabling_input).then(function() {
+        $(input_selector).children("input:button").prop("disabled", false)
+    });
+
+    _show_element_and_hide_siblings(parent_selector);
+
+    $(input_selector).children("input:button").click(function() {
+
+        var value = get_value_fn(this, selector_to_element_of_interest);
+
+        // Make sure that only one button can be pushed and that it can only be pushed once
+        $(input_selector).children("input:button").prop("disabled", "true");
+
+        if (typeof callback_fn !== "undefined") {
+            callback_fn(value);
+        }
+        $(parent_selector).fadeOut();
+        $(content_selector).css("display", default_content_display_type);
     })
 }
 
