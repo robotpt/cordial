@@ -19,9 +19,10 @@
     padding: 2px;
 }
 
-#col-1-numpad {
+#col-1-content {
     padding: 1vw;
     font-size: 1.7em;
+    display: none;
 }
 
 .numpad-row {
