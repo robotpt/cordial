@@ -31,7 +31,7 @@ class TestCordialManagerActions(unittest.TestCase):
 
         client.send_goal(goal)
 
-        self.assertTrue(client.wait_for_result(rospy.Duration(5)),
+        self.assertTrue(client.wait_for_result(rospy.Duration(15)),
                         "Goal didn't finish")
         self.assertEqual(actionlib.GoalStatus.SUCCEEDED, client.get_state())
         self.assertEqual(client.get_result().data, "Debugging")
