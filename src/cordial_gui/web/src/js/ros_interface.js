@@ -151,6 +151,9 @@ function make_display(display_msg) {
         case 'video':
             video_display(content, buttons, callback_fn, args, buttons_delay_seconds);
             break;
+        case 'image':
+            image_display(content, buttons, callback_fn, args, buttons_delay_seconds);
+            break;
         default:
             var message = "'" + display_type + "' not implemented";
             console.log(message);
